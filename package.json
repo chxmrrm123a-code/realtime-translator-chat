@@ -1,0 +1,13 @@
+{
+  "name": "realtime-translator-chat",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mobile-first realtime AI interpreter chat room prototype.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
