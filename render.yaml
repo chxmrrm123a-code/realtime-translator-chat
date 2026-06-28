@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: realtime-translator-chat
+    env: node
+    buildCommand: ""
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_TRANSLATION_MODEL
+        value: gpt-4.1-mini
+      - key: ROOM_CAPACITY
+        value: "2"
