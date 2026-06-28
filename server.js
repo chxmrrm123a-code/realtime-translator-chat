@@ -178,7 +178,10 @@ async function deliverHistoryToClient(room, client) {
   for (const message of room.history) {
     if (client.closed) break;
 
-    const translateFor = createTranslatorForMessage(message, room.history.slice(-10));
+    const messageIndex = room.history.findIndex((item) => item.id === message.id);
+    const context =
+      messageIndex > 0 ? room.history.slice(Math.max(0, messageIndex - 10), messageIndex) : [];
+    const translateFor = createTranslatorForMessage(message, context);
     const translation = await translateFor(client.language);
     const peerTranslations = await getPeerTranslationsForClient(clients, client, message, translateFor);
 
@@ -223,19 +226,20 @@ async function handleMessage(req, res) {
     createdAt: new Date().toISOString()
   };
 
+  const context = room.history.slice(-10);
   room.history.push(message);
   if (room.history.length > 40) room.history.splice(0, room.history.length - 40);
 
-  deliverMessage(room, message).catch((error) => {
+  deliverMessage(room, message, context).catch((error) => {
     console.error("Message delivery failed:", error);
   });
 
   sendJson(res, 202, { ok: true, id: message.id });
 }
 
-async function deliverMessage(room, message) {
+async function deliverMessage(room, message, context) {
   const clients = [...room.clients.values()];
-  const translateFor = createTranslatorForMessage(message, room.history.slice(-10));
+  const translateFor = createTranslatorForMessage(message, context);
 
   await Promise.all(
     clients.map(async (client) => {
@@ -328,10 +332,26 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context 
 }
 
 async function translateWithOpenAI({ text, sourceLanguage, targetLanguage, context }) {
-  const model = process.env.OPENAI_TRANSLATION_MODEL || "gpt-4.1-mini";
+  const model = getTranslationModel();
   const recentContext = context
     .map((item) => `${languages[item.sourceLanguage]} ${item.senderName}: ${item.text}`)
     .join("\n");
+  const prompt = [
+    `Source language: ${languages[sourceLanguage]}.`,
+    `Target language: ${languages[targetLanguage]}.`,
+    "Translate only the exact text inside <message_to_translate> into the target language.",
+    "Use recent context only to understand tone, pronouns, names, and slang. Do not translate, answer, continue, or summarize the context.",
+    "Preserve names, handles, links, code, numbers, line breaks, emojis, slang intensity, politeness level, and profanity intensity.",
+    "Return only the translated message. If the message is already in the target language, return it unchanged.",
+    "",
+    "<recent_context_do_not_translate>",
+    recentContext || "No previous messages.",
+    "</recent_context_do_not_translate>",
+    "",
+    "<message_to_translate>",
+    text,
+    "</message_to_translate>"
+  ].join("\n");
 
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
@@ -344,20 +364,14 @@ async function translateWithOpenAI({ text, sourceLanguage, targetLanguage, conte
       input: [
         {
           role: "system",
-          content:
-            "You are a real-time chat interpreter. Translate naturally for chat. Preserve names, handles, links, code, numbers, line breaks, emojis, slang intensity, politeness level, and profanity intensity. Return only the translated message with no notes."
+          content: "You are a precise real-time chat translation engine."
         },
         {
           role: "user",
-          content: JSON.stringify({
-            source_language: languages[sourceLanguage],
-            target_language: languages[targetLanguage],
-            recent_context: recentContext,
-            message: text
-          })
+          content: prompt
         }
       ],
-      temperature: 0.2
+      temperature: 0
     })
   });
 
@@ -370,6 +384,14 @@ async function translateWithOpenAI({ text, sourceLanguage, targetLanguage, conte
   const outputText = extractResponseText(data).trim();
   if (!outputText) throw new Error("Empty AI translation response.");
   return outputText.slice(0, 4_000);
+}
+
+function getTranslationModel() {
+  const model = String(process.env.OPENAI_TRANSLATION_MODEL || "").trim();
+  if (!model || /audio|transcribe|transcription|tts|whisper/i.test(model)) {
+    return "gpt-4.1-mini";
+  }
+  return model;
 }
 
 function extractResponseText(data) {
