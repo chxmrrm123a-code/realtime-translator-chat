@@ -15,6 +15,8 @@ const uiText = {
     nickname: "닉네임",
     chatLanguage: "내 언어",
     interfaceLanguage: "Language",
+    translationGuide: "번역 지시사항",
+    translationGuidePlaceholder: "예: 나는 anh, 상대는 em으로 번역",
     join: "입장",
     newRoom: "새 방 코드",
     chatRoom: "채팅방",
@@ -43,8 +45,7 @@ const uiText = {
     members: (count) => `${count}명`,
     roomFullCount: (limit) => `${limit}명 마감`,
     roomFullStatus: "방이 가득 찼어요",
-    roomFullMessage:
-      "이 방은 1:1 전용이라 이미 2명이 입장했습니다. 새 방을 만들거나 다른 방 코드로 입장하세요."
+    roomFullMessage: "방 정원이 찼습니다. 새 방을 만들거나 다른 방 코드로 입장하세요."
   },
   en: {
     pageTitle: "AI Interpreter Chat",
@@ -54,6 +55,8 @@ const uiText = {
     nickname: "Nickname",
     chatLanguage: "My language",
     interfaceLanguage: "Language",
+    translationGuide: "Translation instructions",
+    translationGuidePlaceholder: "Example: Use anh for me and em for the other person",
     join: "Join",
     newRoom: "New room code",
     chatRoom: "Chat room",
@@ -82,8 +85,7 @@ const uiText = {
     members: (count) => `${count} ${count === 1 ? "member" : "members"}`,
     roomFullCount: (limit) => `Full (${limit})`,
     roomFullStatus: "Room is full",
-    roomFullMessage:
-      "This room is limited to 1:1 chat and already has 2 people. Create a new room or join with another room code."
+    roomFullMessage: "This room is full. Create a new room or join with another room code."
   },
   ja: {
     pageTitle: "AI通訳チャット",
@@ -93,6 +95,8 @@ const uiText = {
     nickname: "ニックネーム",
     chatLanguage: "自分の言語",
     interfaceLanguage: "Language",
+    translationGuide: "翻訳指示",
+    translationGuidePlaceholder: "例: 私は anh、相手は em として訳す",
     join: "入室",
     newRoom: "新しいルームコード",
     chatRoom: "チャットルーム",
@@ -121,8 +125,7 @@ const uiText = {
     members: (count) => `${count}人`,
     roomFullCount: (limit) => `${limit}人で満員`,
     roomFullStatus: "ルームが満員です",
-    roomFullMessage:
-      "このルームは1対1専用のため、すでに2人が入室しています。新しいルームを作るか、別のルームコードで入室してください。"
+    roomFullMessage: "このルームは満員です。新しいルームを作るか、別のルームコードで入室してください。"
   },
   zh: {
     pageTitle: "AI 翻译聊天",
@@ -132,6 +135,8 @@ const uiText = {
     nickname: "昵称",
     chatLanguage: "我的语言",
     interfaceLanguage: "Language",
+    translationGuide: "翻译指示",
+    translationGuidePlaceholder: "例：把我译成 anh，对方译成 em",
     join: "进入",
     newRoom: "新房间代码",
     chatRoom: "聊天房间",
@@ -160,8 +165,7 @@ const uiText = {
     members: (count) => `${count}人`,
     roomFullCount: (limit) => `${limit}人已满`,
     roomFullStatus: "房间已满",
-    roomFullMessage:
-      "此房间为 1 对 1 专用，已有 2 人进入。请创建新房间或使用其他房间代码进入。"
+    roomFullMessage: "房间已满。请创建新房间或使用其他房间代码进入。"
   },
   vi: {
     pageTitle: "Chat phiên dịch AI",
@@ -171,6 +175,8 @@ const uiText = {
     nickname: "Biệt danh",
     chatLanguage: "Ngôn ngữ của tôi",
     interfaceLanguage: "Language",
+    translationGuide: "Hướng dẫn dịch",
+    translationGuidePlaceholder: "Ví dụ: Dịch tôi là anh, đối phương là em",
     join: "Vào phòng",
     newRoom: "Mã phòng mới",
     chatRoom: "Phòng chat",
@@ -199,8 +205,7 @@ const uiText = {
     members: (count) => `${count} người`,
     roomFullCount: (limit) => `Đầy ${limit} người`,
     roomFullStatus: "Phòng đã đầy",
-    roomFullMessage:
-      "Phòng này dành riêng cho 1:1 nên đã có 2 người tham gia. Hãy tạo phòng mới hoặc vào bằng mã phòng khác."
+    roomFullMessage: "Phòng đã đầy. Hãy tạo phòng mới hoặc vào bằng mã phòng khác."
   }
 };
 
@@ -212,6 +217,7 @@ const els = {
   nameInput: document.querySelector("#nameInput"),
   languageInput: document.querySelector("#languageInput"),
   uiLanguageInput: document.querySelector("#uiLanguageInput"),
+  translationGuideInput: document.querySelector("#translationGuideInput"),
   joinButton: document.querySelector("#joinButton"),
   newRoomButton: document.querySelector("#newRoomButton"),
   roomCodeDisplay: document.querySelector("#roomCodeDisplay"),
@@ -231,6 +237,7 @@ const state = {
   name: localStorage.getItem("translator.name") || "",
   language: localStorage.getItem("translator.language") || "ko",
   uiLanguage: normalizeUiLanguage(localStorage.getItem("translator.uiLanguage") || detectUiLanguage()),
+  translationGuide: localStorage.getItem("translator.translationGuide") || "",
   clientId: crypto.randomUUID(),
   eventSource: null,
   aiEnabled: false,
@@ -246,6 +253,7 @@ els.roomInput.value = state.room;
 els.nameInput.value = state.name;
 els.languageInput.value = state.language;
 els.uiLanguageInput.value = state.uiLanguage;
+els.translationGuideInput.value = state.translationGuide;
 
 els.joinButton.addEventListener("click", joinRoom);
 els.newRoomButton.addEventListener("click", () => {
@@ -280,14 +288,17 @@ async function joinRoom() {
   state.room = normalizeRoom(els.roomInput.value);
   state.name = normalizeName(els.nameInput.value);
   state.language = els.languageInput.value;
+  state.translationGuide = normalizeTranslationGuide(els.translationGuideInput.value);
   state.roomFullLimit = null;
 
   localStorage.setItem("translator.room", state.room);
   localStorage.setItem("translator.name", state.name);
   localStorage.setItem("translator.language", state.language);
+  localStorage.setItem("translator.translationGuide", state.translationGuide);
 
   els.roomInput.value = state.room;
   els.nameInput.value = state.name;
+  els.translationGuideInput.value = state.translationGuide;
   els.roomCodeDisplay.textContent = state.room;
   els.messages.replaceChildren();
   els.messageInput.disabled = false;
@@ -374,6 +385,7 @@ function leaveRoom() {
   els.roomInput.value = state.room;
   els.nameInput.value = state.name;
   els.languageInput.value = state.language;
+  els.translationGuideInput.value = state.translationGuide;
   els.roomInput.focus();
 }
 
@@ -533,6 +545,7 @@ async function sendMessage(event) {
         senderId: state.clientId,
         senderName: state.name,
         language: state.language,
+        translationGuide: state.translationGuide,
         text
       })
     });
@@ -655,6 +668,7 @@ function applyUiLanguage() {
   setLabelText(els.nameInput, "nickname");
   setLabelText(els.languageInput, "chatLanguage");
   setLabelText(els.uiLanguageInput, "interfaceLanguage");
+  setLabelText(els.translationGuideInput, "translationGuide");
 
   els.joinButton.textContent = t("join");
   setButtonLabel(els.newRoomButton, t("newRoom"));
@@ -663,6 +677,7 @@ function applyUiLanguage() {
   setButtonLabel(els.leaveRoomButton, t("leaveRoom"));
   setButtonLabel(els.sendButton, t("send"));
   els.messageInput.placeholder = t("messagePlaceholder");
+  els.translationGuideInput.placeholder = t("translationGuidePlaceholder");
   els.joinPanel.setAttribute("aria-label", t("join"));
   els.chatPanel.setAttribute("aria-label", t("chatRoom"));
   document.querySelector(".room-label").textContent = t("room");
@@ -744,6 +759,10 @@ function normalizeRoom(value) {
 
 function normalizeName(value) {
   return String(value || "").trim().replace(/\s+/g, " ").slice(0, 24) || "Guest";
+}
+
+function normalizeTranslationGuide(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").slice(0, 500);
 }
 
 function randomRoom() {
