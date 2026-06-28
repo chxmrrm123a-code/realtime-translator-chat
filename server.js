@@ -2,13 +2,14 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { randomBytes } from "node:crypto";
+import { createPrivateKey, createSign, generateKeyPairSync, randomBytes } from "node:crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, "public");
 const port = Number(process.env.PORT || 4173);
 const host = process.env.HOST || "0.0.0.0";
 const roomCapacity = Number(process.env.ROOM_CAPACITY || 2);
+const vapidSubject = process.env.PUSH_VAPID_SUBJECT || "mailto:translator@example.com";
 
 const languages = {
   ko: "Korean",
@@ -30,11 +31,15 @@ const mimeTypes = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
+  ".webmanifest": "application/manifest+json; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".svg": "image/svg+xml"
 };
 
 const rooms = new Map();
+const pushSubscriptions = new Map();
+const pendingPushNotifications = new Map();
+const vapidKeys = createVapidKeys();
 
 function getRoom(roomCode) {
   const normalized = normalizeRoom(roomCode);
@@ -89,6 +94,108 @@ function sendSse(client, event, payload) {
   client.res.write(`data: ${JSON.stringify(payload)}\n\n`);
 }
 
+function base64Url(input) {
+  return Buffer.from(input)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+function base64UrlToBuffer(value) {
+  const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  const padding = "=".repeat((4 - (normalized.length % 4)) % 4);
+  return Buffer.from(normalized + padding, "base64");
+}
+
+function createVapidKeys() {
+  const publicKey = process.env.PUSH_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.PUSH_VAPID_PRIVATE_KEY;
+
+  if (publicKey && privateKey) {
+    const publicParts = getVapidPublicParts(publicKey);
+    return {
+      publicKey,
+      privateKeyObject: createPrivateKey({
+        key: {
+          kty: "EC",
+          crv: "P-256",
+          x: publicParts.x,
+          y: publicParts.y,
+          d: privateKey
+        },
+        format: "jwk"
+      })
+    };
+  }
+
+  const pair = generateKeyPairSync("ec", { namedCurve: "prime256v1" });
+  const jwk = pair.privateKey.export({ format: "jwk" });
+  const rawPublicKey = Buffer.concat([
+    Buffer.from([0x04]),
+    base64UrlToBuffer(jwk.x),
+    base64UrlToBuffer(jwk.y)
+  ]);
+
+  return {
+    publicKey: base64Url(rawPublicKey),
+    privateKeyObject: pair.privateKey
+  };
+}
+
+function getVapidPublicParts(publicKey) {
+  const raw = base64UrlToBuffer(publicKey);
+  if (raw.length !== 65 || raw[0] !== 0x04) {
+    throw new Error("Invalid PUSH_VAPID_PUBLIC_KEY.");
+  }
+  return {
+    x: base64Url(raw.subarray(1, 33)),
+    y: base64Url(raw.subarray(33, 65))
+  };
+}
+
+function createVapidToken(endpoint) {
+  const audience = new URL(endpoint).origin;
+  const encodedHeader = base64Url(JSON.stringify({ typ: "JWT", alg: "ES256" }));
+  const encodedPayload = base64Url(
+    JSON.stringify({
+      aud: audience,
+      exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
+      sub: vapidSubject
+    })
+  );
+  const signingInput = `${encodedHeader}.${encodedPayload}`;
+  const signer = createSign("SHA256");
+  signer.update(signingInput);
+  signer.end();
+  return `${signingInput}.${derToJose(signer.sign(vapidKeys.privateKeyObject))}`;
+}
+
+function derToJose(signature) {
+  let offset = 0;
+  if (signature[offset++] !== 0x30) throw new Error("Invalid VAPID signature.");
+  let sequenceLength = signature[offset++];
+  if (sequenceLength & 0x80) {
+    const lengthBytes = sequenceLength & 0x7f;
+    sequenceLength = 0;
+    for (let index = 0; index < lengthBytes; index += 1) {
+      sequenceLength = (sequenceLength << 8) + signature[offset++];
+    }
+  }
+
+  const readInteger = () => {
+    if (signature[offset++] !== 0x02) throw new Error("Invalid VAPID signature integer.");
+    let length = signature[offset++];
+    let value = signature.subarray(offset, offset + length);
+    offset += length;
+    while (value.length > 32 && value[0] === 0x00) value = value.subarray(1);
+    if (value.length > 32) throw new Error("Invalid VAPID signature length.");
+    return Buffer.concat([Buffer.alloc(32 - value.length), value]);
+  };
+
+  return base64Url(Buffer.concat([readInteger(), readInteger()]));
+}
+
 function broadcastPresence(room) {
   const members = [...room.clients.values()].map((client) => ({
     id: client.id,
@@ -111,6 +218,81 @@ async function readRequestBody(req, limit = 32_000) {
     }
   }
   return body ? JSON.parse(body) : {};
+}
+
+async function handlePushConfig(req, res) {
+  sendJson(res, 200, {
+    ok: true,
+    supported: Boolean(vapidKeys?.publicKey),
+    publicKey: vapidKeys?.publicKey || ""
+  });
+}
+
+async function handlePushSubscribe(req, res) {
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: "Invalid push subscription payload." });
+    return;
+  }
+
+  const subscription = payload.subscription || {};
+  const endpoint = String(subscription.endpoint || "");
+  if (!endpoint || !subscription.keys?.p256dh || !subscription.keys?.auth) {
+    sendJson(res, 422, { ok: false, error: "Push subscription is missing required fields." });
+    return;
+  }
+
+  const room = getRoom(payload.room);
+  const clientId = String(payload.clientId || "").slice(0, 64);
+  const language = normalizeLanguage(payload.language);
+
+  pushSubscriptions.set(endpoint, {
+    endpoint,
+    subscription,
+    room: room.code,
+    clientId,
+    name: normalizeName(payload.name),
+    language,
+    createdAt: Date.now(),
+    lastSeenAt: Date.now()
+  });
+
+  sendJson(res, 200, { ok: true, count: pushSubscriptions.size });
+}
+
+async function handlePushUnsubscribe(req, res) {
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: "Invalid push unsubscribe payload." });
+    return;
+  }
+
+  const endpoint = String(payload.endpoint || payload.subscription?.endpoint || "");
+  if (endpoint) {
+    pushSubscriptions.delete(endpoint);
+    pendingPushNotifications.delete(endpoint);
+  }
+
+  sendJson(res, 200, { ok: true, count: pushSubscriptions.size });
+}
+
+async function handlePushPending(req, res) {
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: "Invalid push pending payload." });
+    return;
+  }
+
+  const endpoint = String(payload.endpoint || "");
+  const notification = pendingPushNotifications.get(endpoint) || null;
+  if (notification) pendingPushNotifications.delete(endpoint);
+  sendJson(res, 200, { ok: true, notification });
 }
 
 async function handleEvents(req, res, url) {
@@ -258,6 +440,67 @@ async function deliverMessage(room, message, context) {
       });
     })
   );
+
+  deliverPushNotifications(room, message, translateFor).catch((error) => {
+    console.error("Push notification delivery failed:", error);
+  });
+}
+
+async function deliverPushNotifications(room, message, translateFor) {
+  const targets = [...pushSubscriptions.values()].filter(
+    (subscription) => subscription.room === room.code && subscription.clientId !== message.senderId
+  );
+  if (targets.length === 0) return;
+
+  await Promise.all(
+    targets.map(async (target) => {
+      const translation = await translateFor(target.language);
+      const notification = {
+        title: `${message.senderName} · ${localNames[message.sourceLanguage]}`,
+        body: translation.text,
+        room: room.code,
+        url: `/room/${encodeURIComponent(room.code)}`,
+        tag: `room-${room.code}`,
+        createdAt: message.createdAt
+      };
+
+      pendingPushNotifications.set(target.endpoint, notification);
+      const sent = await sendWebPush(target);
+      if (!sent) pendingPushNotifications.delete(target.endpoint);
+    })
+  );
+}
+
+async function sendWebPush(target) {
+  try {
+    const response = await fetch(target.endpoint, {
+      method: "POST",
+      headers: {
+        ttl: "86400",
+        urgency: "normal",
+        "crypto-key": `p256ecdsa=${vapidKeys.publicKey}`,
+        authorization: `vapid t=${createVapidToken(target.endpoint)}, k=${vapidKeys.publicKey}`
+      }
+    });
+
+    if (response.status === 404 || response.status === 410) {
+      pushSubscriptions.delete(target.endpoint);
+      pendingPushNotifications.delete(target.endpoint);
+      return false;
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Web push failed ${response.status}: ${errorText.slice(0, 300)}`);
+      return false;
+    }
+
+    target.lastSeenAt = Date.now();
+    return true;
+  } catch (error) {
+    console.error("Web push request failed:", error);
+    return false;
+  }
 }
 
 function createTranslatorForMessage(message, context) {
@@ -454,8 +697,30 @@ const server = createServer(async (req, res) => {
       ok: true,
       rooms: rooms.size,
       roomCapacity,
-      aiEnabled: Boolean(process.env.OPENAI_API_KEY)
+      aiEnabled: Boolean(process.env.OPENAI_API_KEY),
+      pushEnabled: Boolean(vapidKeys?.publicKey),
+      pushSubscriptions: pushSubscriptions.size
     });
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/push/config") {
+    await handlePushConfig(req, res);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/push/subscribe") {
+    await handlePushSubscribe(req, res);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/push/unsubscribe") {
+    await handlePushUnsubscribe(req, res);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/push/pending") {
+    await handlePushPending(req, res);
     return;
   }
 
