@@ -6,6 +6,164 @@ const languages = {
   vi: "Tiếng Việt"
 };
 
+const uiText = {
+  ko: {
+    pageTitle: "AI 통역 채팅",
+    headerTitle: "실시간 통역방",
+    waiting: "대기",
+    roomCode: "방 코드",
+    nickname: "닉네임",
+    chatLanguage: "내 언어",
+    interfaceLanguage: "화면 언어",
+    join: "입장",
+    newRoom: "새 방 코드",
+    chatRoom: "채팅방",
+    room: "방",
+    copyLink: "방 링크 복사",
+    leaveRoom: "방 나가기",
+    messagePlaceholder: "메시지 입력",
+    send: "전송",
+    connecting: "연결 중",
+    aiConnected: "AI 연결",
+    demoMode: "데모 모드",
+    reconnecting: "재연결",
+    sendFailed: "전송 실패",
+    copied: "복사됨",
+    copyFailed: "복사 실패",
+    original: "원문",
+    demo: "데모",
+    members: (count) => `${count}명`,
+    roomFullCount: (limit) => `${limit}명 마감`,
+    roomFullStatus: "방이 가득 찼어요",
+    roomFullMessage:
+      "이 방은 1:1 전용이라 이미 2명이 입장했습니다. 새 방을 만들거나 다른 방 코드로 입장하세요."
+  },
+  en: {
+    pageTitle: "AI Interpreter Chat",
+    headerTitle: "Realtime interpreter room",
+    waiting: "Waiting",
+    roomCode: "Room code",
+    nickname: "Nickname",
+    chatLanguage: "My language",
+    interfaceLanguage: "Site language",
+    join: "Join",
+    newRoom: "New room code",
+    chatRoom: "Chat room",
+    room: "Room",
+    copyLink: "Copy room link",
+    leaveRoom: "Leave room",
+    messagePlaceholder: "Type a message",
+    send: "Send",
+    connecting: "Connecting",
+    aiConnected: "AI connected",
+    demoMode: "Demo mode",
+    reconnecting: "Reconnecting",
+    sendFailed: "Send failed",
+    copied: "Copied",
+    copyFailed: "Copy failed",
+    original: "Original",
+    demo: "Demo",
+    members: (count) => `${count} ${count === 1 ? "member" : "members"}`,
+    roomFullCount: (limit) => `Full (${limit})`,
+    roomFullStatus: "Room is full",
+    roomFullMessage:
+      "This room is limited to 1:1 chat and already has 2 people. Create a new room or join with another room code."
+  },
+  ja: {
+    pageTitle: "AI通訳チャット",
+    headerTitle: "リアルタイム通訳ルーム",
+    waiting: "待機",
+    roomCode: "ルームコード",
+    nickname: "ニックネーム",
+    chatLanguage: "自分の言語",
+    interfaceLanguage: "画面の言語",
+    join: "入室",
+    newRoom: "新しいルームコード",
+    chatRoom: "チャットルーム",
+    room: "ルーム",
+    copyLink: "ルームリンクをコピー",
+    leaveRoom: "ルームを退出",
+    messagePlaceholder: "メッセージを入力",
+    send: "送信",
+    connecting: "接続中",
+    aiConnected: "AI接続",
+    demoMode: "デモモード",
+    reconnecting: "再接続",
+    sendFailed: "送信失敗",
+    copied: "コピーしました",
+    copyFailed: "コピー失敗",
+    original: "原文",
+    demo: "デモ",
+    members: (count) => `${count}人`,
+    roomFullCount: (limit) => `${limit}人で満員`,
+    roomFullStatus: "ルームが満員です",
+    roomFullMessage:
+      "このルームは1対1専用のため、すでに2人が入室しています。新しいルームを作るか、別のルームコードで入室してください。"
+  },
+  zh: {
+    pageTitle: "AI 翻译聊天",
+    headerTitle: "实时翻译房间",
+    waiting: "等待",
+    roomCode: "房间代码",
+    nickname: "昵称",
+    chatLanguage: "我的语言",
+    interfaceLanguage: "界面语言",
+    join: "进入",
+    newRoom: "新房间代码",
+    chatRoom: "聊天房间",
+    room: "房间",
+    copyLink: "复制房间链接",
+    leaveRoom: "离开房间",
+    messagePlaceholder: "输入消息",
+    send: "发送",
+    connecting: "连接中",
+    aiConnected: "AI 已连接",
+    demoMode: "演示模式",
+    reconnecting: "重新连接",
+    sendFailed: "发送失败",
+    copied: "已复制",
+    copyFailed: "复制失败",
+    original: "原文",
+    demo: "演示",
+    members: (count) => `${count}人`,
+    roomFullCount: (limit) => `${limit}人已满`,
+    roomFullStatus: "房间已满",
+    roomFullMessage:
+      "此房间为 1 对 1 专用，已有 2 人进入。请创建新房间或使用其他房间代码进入。"
+  },
+  vi: {
+    pageTitle: "Chat phiên dịch AI",
+    headerTitle: "Phòng phiên dịch trực tiếp",
+    waiting: "Chờ",
+    roomCode: "Mã phòng",
+    nickname: "Biệt danh",
+    chatLanguage: "Ngôn ngữ của tôi",
+    interfaceLanguage: "Ngôn ngữ giao diện",
+    join: "Vào phòng",
+    newRoom: "Mã phòng mới",
+    chatRoom: "Phòng chat",
+    room: "Phòng",
+    copyLink: "Sao chép liên kết phòng",
+    leaveRoom: "Rời phòng",
+    messagePlaceholder: "Nhập tin nhắn",
+    send: "Gửi",
+    connecting: "Đang kết nối",
+    aiConnected: "Đã kết nối AI",
+    demoMode: "Chế độ demo",
+    reconnecting: "Đang kết nối lại",
+    sendFailed: "Gửi thất bại",
+    copied: "Đã sao chép",
+    copyFailed: "Sao chép thất bại",
+    original: "Nguyên văn",
+    demo: "Demo",
+    members: (count) => `${count} người`,
+    roomFullCount: (limit) => `Đầy ${limit} người`,
+    roomFullStatus: "Phòng đã đầy",
+    roomFullMessage:
+      "Phòng này dành riêng cho 1:1 nên đã có 2 người tham gia. Hãy tạo phòng mới hoặc vào bằng mã phòng khác."
+  }
+};
+
 const els = {
   connectionStatus: document.querySelector("#connectionStatus"),
   joinPanel: document.querySelector("#joinPanel"),
@@ -13,6 +171,7 @@ const els = {
   roomInput: document.querySelector("#roomInput"),
   nameInput: document.querySelector("#nameInput"),
   languageInput: document.querySelector("#languageInput"),
+  uiLanguageInput: document.querySelector("#uiLanguageInput"),
   joinButton: document.querySelector("#joinButton"),
   newRoomButton: document.querySelector("#newRoomButton"),
   roomCodeDisplay: document.querySelector("#roomCodeDisplay"),
@@ -30,14 +189,20 @@ const state = {
   room: roomFromPath() || localStorage.getItem("translator.room") || randomRoom(),
   name: localStorage.getItem("translator.name") || "",
   language: localStorage.getItem("translator.language") || "ko",
+  uiLanguage: normalizeUiLanguage(localStorage.getItem("translator.uiLanguage") || detectUiLanguage()),
   clientId: crypto.randomUUID(),
   eventSource: null,
-  aiEnabled: false
+  aiEnabled: false,
+  memberCount: 0,
+  statusKey: "waiting",
+  statusClass: "",
+  roomFullLimit: null
 };
 
 els.roomInput.value = state.room;
 els.nameInput.value = state.name;
 els.languageInput.value = state.language;
+els.uiLanguageInput.value = state.uiLanguage;
 
 els.joinButton.addEventListener("click", joinRoom);
 els.newRoomButton.addEventListener("click", () => {
@@ -46,6 +211,11 @@ els.newRoomButton.addEventListener("click", () => {
 });
 els.copyLinkButton.addEventListener("click", copyRoomLink);
 els.leaveRoomButton.addEventListener("click", leaveRoom);
+els.uiLanguageInput.addEventListener("change", () => {
+  state.uiLanguage = normalizeUiLanguage(els.uiLanguageInput.value);
+  localStorage.setItem("translator.uiLanguage", state.uiLanguage);
+  applyUiLanguage();
+});
 els.messageForm.addEventListener("submit", sendMessage);
 els.messageInput.addEventListener("input", resizeComposer);
 els.messageInput.addEventListener("keydown", (event) => {
@@ -59,10 +229,13 @@ if (roomFromPath()) {
   els.roomInput.value = roomFromPath();
 }
 
+applyUiLanguage();
+
 function joinRoom() {
   state.room = normalizeRoom(els.roomInput.value);
   state.name = normalizeName(els.nameInput.value);
   state.language = els.languageInput.value;
+  state.roomFullLimit = null;
 
   localStorage.setItem("translator.room", state.room);
   localStorage.setItem("translator.name", state.name);
@@ -74,6 +247,8 @@ function joinRoom() {
   els.messages.replaceChildren();
   els.messageInput.disabled = false;
   els.sendButton.disabled = false;
+  state.memberCount = 0;
+  updateMemberCount();
   els.joinPanel.hidden = true;
   els.chatPanel.hidden = false;
   history.replaceState(null, "", `/room/${encodeURIComponent(state.room)}`);
@@ -84,7 +259,7 @@ function joinRoom() {
 function connectEvents() {
   if (state.eventSource) state.eventSource.close();
 
-  setStatus("연결 중", "");
+  setStatusKey("connecting", "");
   const params = new URLSearchParams({
     room: state.room,
     client: state.clientId,
@@ -96,7 +271,7 @@ function connectEvents() {
   state.eventSource.addEventListener("connected", (event) => {
     const payload = JSON.parse(event.data);
     state.aiEnabled = payload.aiEnabled;
-    setStatus(state.aiEnabled ? "AI 연결" : "데모 모드", state.aiEnabled ? "online" : "demo");
+    setStatusKey(state.aiEnabled ? "aiConnected" : "demoMode", state.aiEnabled ? "online" : "demo");
   });
 
   state.eventSource.addEventListener("presence", (event) => {
@@ -110,11 +285,10 @@ function connectEvents() {
     state.eventSource = null;
     els.messageInput.disabled = true;
     els.sendButton.disabled = true;
-    els.memberCount.textContent = `${payload.limit}\uBA85 \uB9C8\uAC10`;
-    setStatus("\uBC29\uC774 \uAC00\uB4DD \uCC3C\uC5B4\uC694", "demo");
-    renderSystemMessage(
-      "\uC774 \uBC29\uC740 1:1 \uC804\uC6A9\uC774\uB77C \uC774\uBBF8 2\uBA85\uC774 \uC785\uC7A5\uD588\uC2B5\uB2C8\uB2E4. \uC0C8 \uBC29\uC744 \uB9CC\uB4E4\uAC70\uB098 \uB2E4\uB978 \uBC29 \uCF54\uB4DC\uB85C \uC785\uC7A5\uD558\uC138\uC694."
-    );
+    state.roomFullLimit = payload.limit;
+    updateMemberCount();
+    setStatusKey("roomFullStatus", "demo");
+    renderSystemMessage(t("roomFullMessage"));
   });
 
   state.eventSource.addEventListener("message", (event) => {
@@ -123,7 +297,7 @@ function connectEvents() {
   });
 
   state.eventSource.onerror = () => {
-    setStatus("재연결", "");
+    setStatusKey("reconnecting", "");
   };
 }
 
@@ -139,11 +313,13 @@ function leaveRoom() {
   els.sendButton.disabled = false;
   els.messages.replaceChildren();
   els.memberRow.replaceChildren();
-  els.memberCount.textContent = "0\uBA85";
+  state.memberCount = 0;
+  state.roomFullLimit = null;
+  updateMemberCount();
   els.chatPanel.hidden = true;
   els.joinPanel.hidden = false;
   history.replaceState(null, "", "/");
-  setStatus("\uB300\uAE30", "");
+  setStatusKey("waiting", "");
   els.roomInput.value = state.room;
   els.nameInput.value = state.name;
   els.languageInput.value = state.language;
@@ -172,7 +348,7 @@ async function sendMessage(event) {
     els.messageInput.value = "";
     resizeComposer();
   } catch {
-    setStatus("전송 실패", "demo");
+    setStatusKey("sendFailed", "demo");
   } finally {
     els.sendButton.disabled = false;
     els.messageInput.focus();
@@ -180,7 +356,9 @@ async function sendMessage(event) {
 }
 
 function renderMembers(members) {
-  els.memberCount.textContent = `${members.length}명`;
+  state.memberCount = members.length;
+  state.roomFullLimit = null;
+  updateMemberCount();
   els.memberRow.replaceChildren(
     ...members.map((member) => {
       const chip = document.createElement("span");
@@ -242,13 +420,82 @@ async function copyRoomLink() {
   const url = `${location.origin}/room/${encodeURIComponent(state.room)}`;
   try {
     await navigator.clipboard.writeText(url);
-    setStatus("복사됨", state.aiEnabled ? "online" : "demo");
+    setStatusKey("copied", state.aiEnabled ? "online" : "demo");
     window.setTimeout(() => {
-      setStatus(state.aiEnabled ? "AI 연결" : "데모 모드", state.aiEnabled ? "online" : "demo");
+      setStatusKey(state.aiEnabled ? "aiConnected" : "demoMode", state.aiEnabled ? "online" : "demo");
     }, 1400);
   } catch {
-    setStatus("복사 실패", "demo");
+    setStatusKey("copyFailed", "demo");
   }
+}
+
+function applyUiLanguage() {
+  document.documentElement.lang = state.uiLanguage;
+  document.title = t("pageTitle");
+  document.querySelector(".topbar h1").textContent = t("headerTitle");
+
+  setLabelText(els.roomInput, "roomCode");
+  setLabelText(els.nameInput, "nickname");
+  setLabelText(els.languageInput, "chatLanguage");
+  setLabelText(els.uiLanguageInput, "interfaceLanguage");
+
+  els.joinButton.textContent = t("join");
+  setButtonLabel(els.newRoomButton, t("newRoom"));
+  setButtonLabel(els.copyLinkButton, t("copyLink"));
+  setButtonLabel(els.leaveRoomButton, t("leaveRoom"));
+  setButtonLabel(els.sendButton, t("send"));
+  els.messageInput.placeholder = t("messagePlaceholder");
+  els.joinPanel.setAttribute("aria-label", t("join"));
+  els.chatPanel.setAttribute("aria-label", t("chatRoom"));
+  document.querySelector(".room-label").textContent = t("room");
+
+  updateMemberCount();
+  refreshStatus();
+}
+
+function setLabelText(input, key) {
+  const label = input.closest("label");
+  const labelText = label?.querySelector("span");
+  if (labelText) labelText.textContent = t(key);
+}
+
+function setButtonLabel(button, label) {
+  button.title = label;
+  button.setAttribute("aria-label", label);
+}
+
+function updateMemberCount() {
+  els.memberCount.textContent =
+    state.roomFullLimit == null ? t("members", state.memberCount) : t("roomFullCount", state.roomFullLimit);
+}
+
+function setStatusKey(key, className) {
+  state.statusKey = key;
+  state.statusClass = className;
+  refreshStatus();
+}
+
+function refreshStatus() {
+  setStatus(t(state.statusKey), state.statusClass);
+}
+
+function t(key, ...args) {
+  const dictionary = uiText[state.uiLanguage] || uiText.ko;
+  const value = dictionary[key] || uiText.en[key] || key;
+  return typeof value === "function" ? value(...args) : value;
+}
+
+function normalizeUiLanguage(value) {
+  return Object.hasOwn(uiText, value) ? value : "ko";
+}
+
+function detectUiLanguage() {
+  const browserLanguage = (navigator.language || "").toLowerCase();
+  if (browserLanguage.startsWith("ko")) return "ko";
+  if (browserLanguage.startsWith("ja")) return "ja";
+  if (browserLanguage.startsWith("zh")) return "zh";
+  if (browserLanguage.startsWith("vi")) return "vi";
+  return "en";
 }
 
 function resizeComposer() {
@@ -263,8 +510,8 @@ function setStatus(text, className) {
 
 function providerLabel(provider) {
   if (provider === "openai") return "AI";
-  if (provider === "original") return "원문";
-  return "데모";
+  if (provider === "original") return t("original");
+  return t("demo");
 }
 
 function normalizeRoom(value) {
