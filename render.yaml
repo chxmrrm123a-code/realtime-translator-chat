@@ -13,4 +13,6 @@ services:
       - key: OPENAI_TRANSLATION_MODEL
         value: gpt-4.1-mini
       - key: ROOM_CAPACITY
-        value: "2"
+        value: "30"
+      - key: ROOM_HISTORY_LIMIT
+        value: "25"
