@@ -1,0 +1,11 @@
+{
+  "name": "AI Interpreter Chat",
+  "short_name": "Interpreter",
+  "description": "Realtime AI translated 1:1 chat rooms.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fa",
+  "theme_color": "#2563eb"
+}
