@@ -18,6 +18,7 @@ const els = {
   roomCodeDisplay: document.querySelector("#roomCodeDisplay"),
   memberCount: document.querySelector("#memberCount"),
   copyLinkButton: document.querySelector("#copyLinkButton"),
+  leaveRoomButton: document.querySelector("#leaveRoomButton"),
   memberRow: document.querySelector("#memberRow"),
   messages: document.querySelector("#messages"),
   messageForm: document.querySelector("#messageForm"),
@@ -44,6 +45,7 @@ els.newRoomButton.addEventListener("click", () => {
   els.roomInput.focus();
 });
 els.copyLinkButton.addEventListener("click", copyRoomLink);
+els.leaveRoomButton.addEventListener("click", leaveRoom);
 els.messageForm.addEventListener("submit", sendMessage);
 els.messageInput.addEventListener("input", resizeComposer);
 els.messageInput.addEventListener("keydown", (event) => {
@@ -105,6 +107,7 @@ function connectEvents() {
   state.eventSource.addEventListener("roomFull", (event) => {
     const payload = JSON.parse(event.data);
     state.eventSource.close();
+    state.eventSource = null;
     els.messageInput.disabled = true;
     els.sendButton.disabled = true;
     els.memberCount.textContent = `${payload.limit}\uBA85 \uB9C8\uAC10`;
@@ -122,6 +125,29 @@ function connectEvents() {
   state.eventSource.onerror = () => {
     setStatus("재연결", "");
   };
+}
+
+function leaveRoom() {
+  if (state.eventSource) {
+    state.eventSource.close();
+    state.eventSource = null;
+  }
+
+  els.messageInput.value = "";
+  resizeComposer();
+  els.messageInput.disabled = false;
+  els.sendButton.disabled = false;
+  els.messages.replaceChildren();
+  els.memberRow.replaceChildren();
+  els.memberCount.textContent = "0\uBA85";
+  els.chatPanel.hidden = true;
+  els.joinPanel.hidden = false;
+  history.replaceState(null, "", "/");
+  setStatus("\uB300\uAE30", "");
+  els.roomInput.value = state.room;
+  els.nameInput.value = state.name;
+  els.languageInput.value = state.language;
+  els.roomInput.focus();
 }
 
 async function sendMessage(event) {
