@@ -235,6 +235,16 @@ textarea:disabled {
   color: var(--blue);
 }
 
+.icon-button.danger {
+  color: var(--coral);
+}
+
+.icon-button.danger:hover {
+  border-color: rgba(216, 92, 74, 0.46);
+  background: var(--soft-coral);
+  color: var(--coral);
+}
+
 .send-button {
   flex: 0 0 48px;
   color: #fff;
