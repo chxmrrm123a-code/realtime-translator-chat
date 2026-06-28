@@ -31,6 +31,7 @@ const uiText = {
     copied: "복사됨",
     copyFailed: "복사 실패",
     original: "원문",
+    shownToPartner: (language) => `상대 화면 (${language})`,
     demo: "데모",
     members: (count) => `${count}명`,
     roomFullCount: (limit) => `${limit}명 마감`,
@@ -62,6 +63,7 @@ const uiText = {
     copied: "Copied",
     copyFailed: "Copy failed",
     original: "Original",
+    shownToPartner: (language) => `Shown to partner (${language})`,
     demo: "Demo",
     members: (count) => `${count} ${count === 1 ? "member" : "members"}`,
     roomFullCount: (limit) => `Full (${limit})`,
@@ -93,6 +95,7 @@ const uiText = {
     copied: "コピーしました",
     copyFailed: "コピー失敗",
     original: "原文",
+    shownToPartner: (language) => `相手の表示 (${language})`,
     demo: "デモ",
     members: (count) => `${count}人`,
     roomFullCount: (limit) => `${limit}人で満員`,
@@ -124,6 +127,7 @@ const uiText = {
     copied: "已复制",
     copyFailed: "复制失败",
     original: "原文",
+    shownToPartner: (language) => `对方看到的翻译（${language}）`,
     demo: "演示",
     members: (count) => `${count}人`,
     roomFullCount: (limit) => `${limit}人已满`,
@@ -155,6 +159,7 @@ const uiText = {
     copied: "Đã sao chép",
     copyFailed: "Sao chép thất bại",
     original: "Nguyên văn",
+    shownToPartner: (language) => `Bản dịch phía đối phương (${language})`,
     demo: "Demo",
     members: (count) => `${count} người`,
     roomFullCount: (limit) => `Đầy ${limit} người`,
@@ -399,6 +404,31 @@ function renderMessage(message) {
     original.className = "message-original";
     original.textContent = message.text;
     item.append(original);
+  }
+
+  if (message.senderId === state.clientId && Array.isArray(message.peerTranslations)) {
+    const peerTranslations = message.peerTranslations.filter((translation) => translation?.translatedText);
+    if (peerTranslations.length > 0) {
+      const peerBox = document.createElement("div");
+      peerBox.className = "message-peer-box";
+
+      for (const translation of peerTranslations) {
+        const languageName = languages[translation.targetLanguage] || translation.targetLanguageName;
+        const label = document.createElement("div");
+        label.className = "message-peer-label";
+        label.textContent = `${t("shownToPartner", languageName)} · ${providerLabel(
+          translation.translationProvider
+        )}`;
+
+        const text = document.createElement("p");
+        text.className = "message-peer-text";
+        text.textContent = translation.translatedText;
+
+        peerBox.append(label, text);
+      }
+
+      item.append(peerBox);
+    }
   }
 
   els.messages.append(item);
