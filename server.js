@@ -174,15 +174,13 @@ async function handleEvents(req, res, url) {
 }
 
 async function deliverHistoryToClient(room, client) {
+  const clients = [...room.clients.values()];
   for (const message of room.history) {
     if (client.closed) break;
 
-    const translation = await translateMessage({
-      text: message.text,
-      sourceLanguage: message.sourceLanguage,
-      targetLanguage: client.language,
-      context: room.history.slice(-10)
-    });
+    const translateFor = createTranslatorForMessage(message, room.history.slice(-10));
+    const translation = await translateFor(client.language);
+    const peerTranslations = await getPeerTranslationsForClient(clients, client, message, translateFor);
 
     sendSse(client, "message", {
       ...message,
@@ -191,7 +189,8 @@ async function deliverHistoryToClient(room, client) {
       translatedText: translation.text,
       translationProvider: translation.provider,
       translationError: translation.error || null,
-      originalVisible: client.language !== message.sourceLanguage
+      originalVisible: client.language !== message.sourceLanguage,
+      peerTranslations
     });
   }
 }
@@ -236,14 +235,12 @@ async function handleMessage(req, res) {
 
 async function deliverMessage(room, message) {
   const clients = [...room.clients.values()];
+  const translateFor = createTranslatorForMessage(message, room.history.slice(-10));
+
   await Promise.all(
     clients.map(async (client) => {
-      const translation = await translateMessage({
-        text: message.text,
-        sourceLanguage: message.sourceLanguage,
-        targetLanguage: client.language,
-        context: room.history.slice(-10)
-      });
+      const translation = await translateFor(client.language);
+      const peerTranslations = await getPeerTranslationsForClient(clients, client, message, translateFor);
 
       sendSse(client, "message", {
         ...message,
@@ -252,8 +249,53 @@ async function deliverMessage(room, message) {
         translatedText: translation.text,
         translationProvider: translation.provider,
         translationError: translation.error || null,
-        originalVisible: client.language !== message.sourceLanguage
+        originalVisible: client.language !== message.sourceLanguage,
+        peerTranslations
       });
+    })
+  );
+}
+
+function createTranslatorForMessage(message, context) {
+  const translations = new Map();
+  return (targetLanguage) => {
+    if (!translations.has(targetLanguage)) {
+      translations.set(
+        targetLanguage,
+        translateMessage({
+          text: message.text,
+          sourceLanguage: message.sourceLanguage,
+          targetLanguage,
+          context
+        })
+      );
+    }
+    return translations.get(targetLanguage);
+  };
+}
+
+async function getPeerTranslationsForClient(clients, client, message, translateFor) {
+  if (client.id !== message.senderId) return [];
+
+  const targetLanguages = [
+    ...new Set(
+      clients
+        .filter((peer) => peer.id !== client.id)
+        .map((peer) => peer.language)
+        .filter((language) => language !== message.sourceLanguage)
+    )
+  ];
+
+  return Promise.all(
+    targetLanguages.map(async (targetLanguage) => {
+      const translation = await translateFor(targetLanguage);
+      return {
+        targetLanguage,
+        targetLanguageName: localNames[targetLanguage],
+        translatedText: translation.text,
+        translationProvider: translation.provider,
+        translationError: translation.error || null
+      };
     })
   );
 }
