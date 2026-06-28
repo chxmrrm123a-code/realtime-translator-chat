@@ -159,6 +159,9 @@ async function handleEvents(req, res, url) {
     aiEnabled: Boolean(process.env.OPENAI_API_KEY)
   });
   broadcastPresence(room);
+  deliverHistoryToClient(room, client).catch((error) => {
+    console.error("History delivery failed:", error);
+  });
 
   req.on("close", () => {
     client.closed = true;
@@ -168,6 +171,29 @@ async function handleEvents(req, res, url) {
       broadcastPresence(room);
     }
   });
+}
+
+async function deliverHistoryToClient(room, client) {
+  for (const message of room.history) {
+    if (client.closed) break;
+
+    const translation = await translateMessage({
+      text: message.text,
+      sourceLanguage: message.sourceLanguage,
+      targetLanguage: client.language,
+      context: room.history.slice(-10)
+    });
+
+    sendSse(client, "message", {
+      ...message,
+      targetLanguage: client.language,
+      targetLanguageName: localNames[client.language],
+      translatedText: translation.text,
+      translationProvider: translation.provider,
+      translationError: translation.error || null,
+      originalVisible: client.language !== message.sourceLanguage
+    });
+  }
 }
 
 async function handleMessage(req, res) {
