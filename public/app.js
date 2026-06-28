@@ -32,6 +32,13 @@ const uiText = {
     copyFailed: "복사 실패",
     original: "원문",
     shownToPartner: (language) => `상대 화면 (${language})`,
+    notificationsOn: "알림 켜기",
+    notificationsOff: "알림 끄기",
+    notificationsEnabled: "알림 켜짐",
+    notificationsDisabled: "알림 꺼짐",
+    notificationsDenied: "알림 차단됨",
+    notificationsUnsupported: "알림 미지원",
+    notificationsFailed: "알림 실패",
     demo: "데모",
     members: (count) => `${count}명`,
     roomFullCount: (limit) => `${limit}명 마감`,
@@ -64,6 +71,13 @@ const uiText = {
     copyFailed: "Copy failed",
     original: "Original",
     shownToPartner: (language) => `Shown to partner (${language})`,
+    notificationsOn: "Turn notifications on",
+    notificationsOff: "Turn notifications off",
+    notificationsEnabled: "Notifications on",
+    notificationsDisabled: "Notifications off",
+    notificationsDenied: "Notifications blocked",
+    notificationsUnsupported: "Notifications unsupported",
+    notificationsFailed: "Notifications failed",
     demo: "Demo",
     members: (count) => `${count} ${count === 1 ? "member" : "members"}`,
     roomFullCount: (limit) => `Full (${limit})`,
@@ -96,6 +110,13 @@ const uiText = {
     copyFailed: "コピー失敗",
     original: "原文",
     shownToPartner: (language) => `相手の表示 (${language})`,
+    notificationsOn: "通知をオン",
+    notificationsOff: "通知をオフ",
+    notificationsEnabled: "通知オン",
+    notificationsDisabled: "通知オフ",
+    notificationsDenied: "通知がブロックされています",
+    notificationsUnsupported: "通知非対応",
+    notificationsFailed: "通知失敗",
     demo: "デモ",
     members: (count) => `${count}人`,
     roomFullCount: (limit) => `${limit}人で満員`,
@@ -128,6 +149,13 @@ const uiText = {
     copyFailed: "复制失败",
     original: "原文",
     shownToPartner: (language) => `对方看到的翻译（${language}）`,
+    notificationsOn: "开启通知",
+    notificationsOff: "关闭通知",
+    notificationsEnabled: "通知已开启",
+    notificationsDisabled: "通知已关闭",
+    notificationsDenied: "通知已被阻止",
+    notificationsUnsupported: "不支持通知",
+    notificationsFailed: "通知失败",
     demo: "演示",
     members: (count) => `${count}人`,
     roomFullCount: (limit) => `${limit}人已满`,
@@ -160,6 +188,13 @@ const uiText = {
     copyFailed: "Sao chép thất bại",
     original: "Nguyên văn",
     shownToPartner: (language) => `Bản dịch phía đối phương (${language})`,
+    notificationsOn: "Bật thông báo",
+    notificationsOff: "Tắt thông báo",
+    notificationsEnabled: "Đã bật thông báo",
+    notificationsDisabled: "Đã tắt thông báo",
+    notificationsDenied: "Thông báo bị chặn",
+    notificationsUnsupported: "Không hỗ trợ thông báo",
+    notificationsFailed: "Thông báo thất bại",
     demo: "Demo",
     members: (count) => `${count} người`,
     roomFullCount: (limit) => `Đầy ${limit} người`,
@@ -181,6 +216,7 @@ const els = {
   newRoomButton: document.querySelector("#newRoomButton"),
   roomCodeDisplay: document.querySelector("#roomCodeDisplay"),
   memberCount: document.querySelector("#memberCount"),
+  notificationButton: document.querySelector("#notificationButton"),
   copyLinkButton: document.querySelector("#copyLinkButton"),
   leaveRoomButton: document.querySelector("#leaveRoomButton"),
   memberRow: document.querySelector("#memberRow"),
@@ -198,6 +234,8 @@ const state = {
   clientId: crypto.randomUUID(),
   eventSource: null,
   aiEnabled: false,
+  notificationSupported: false,
+  notificationsEnabled: false,
   memberCount: 0,
   statusKey: "waiting",
   statusClass: "",
@@ -216,6 +254,7 @@ els.newRoomButton.addEventListener("click", () => {
 });
 els.copyLinkButton.addEventListener("click", copyRoomLink);
 els.leaveRoomButton.addEventListener("click", leaveRoom);
+els.notificationButton.addEventListener("click", toggleNotifications);
 els.uiLanguageInput.addEventListener("change", () => {
   state.uiLanguage = normalizeUiLanguage(els.uiLanguageInput.value);
   localStorage.setItem("translator.uiLanguage", state.uiLanguage);
@@ -235,8 +274,9 @@ if (roomFromPath()) {
 }
 
 applyUiLanguage();
+initializeNotifications();
 
-function joinRoom() {
+async function joinRoom() {
   state.room = normalizeRoom(els.roomInput.value);
   state.name = normalizeName(els.nameInput.value);
   state.language = els.languageInput.value;
@@ -258,6 +298,9 @@ function joinRoom() {
   els.chatPanel.hidden = false;
   history.replaceState(null, "", `/room/${encodeURIComponent(state.room)}`);
   connectEvents();
+  syncPushSubscriptionIfAllowed().catch(() => {
+    updateNotificationButton();
+  });
   els.messageInput.focus();
 }
 
@@ -311,6 +354,9 @@ function leaveRoom() {
     state.eventSource.close();
     state.eventSource = null;
   }
+  unregisterPushSubscriptionFromServer().catch(() => {});
+  state.notificationsEnabled = false;
+  updateNotificationButton();
 
   els.messageInput.value = "";
   resizeComposer();
@@ -329,6 +375,147 @@ function leaveRoom() {
   els.nameInput.value = state.name;
   els.languageInput.value = state.language;
   els.roomInput.focus();
+}
+
+function initializeNotifications() {
+  state.notificationSupported =
+    window.isSecureContext &&
+    "Notification" in window &&
+    "serviceWorker" in navigator &&
+    "PushManager" in window;
+  updateNotificationButton();
+  syncPushSubscriptionIfAllowed().catch(() => {
+    updateNotificationButton();
+  });
+}
+
+async function toggleNotifications() {
+  if (!state.notificationSupported) {
+    setStatusKey("notificationsUnsupported", "demo");
+    return;
+  }
+
+  if (state.notificationsEnabled) {
+    await disablePushNotifications();
+    return;
+  }
+
+  await enablePushNotifications();
+}
+
+async function enablePushNotifications() {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      state.notificationsEnabled = false;
+      updateNotificationButton();
+      setStatusKey("notificationsDenied", "demo");
+      return;
+    }
+
+    const registration = await getServiceWorkerRegistration();
+    const configResponse = await fetch("/api/push/config");
+    const config = await configResponse.json();
+    if (!config.supported || !config.publicKey) throw new Error("Push is not configured.");
+
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(config.publicKey)
+      });
+    }
+
+    await savePushSubscription(subscription);
+    state.notificationsEnabled = true;
+    updateNotificationButton();
+    setStatusKey("notificationsEnabled", "online");
+  } catch (error) {
+    console.error("Notification enable failed:", error);
+    state.notificationsEnabled = false;
+    updateNotificationButton();
+    setStatusKey("notificationsFailed", "demo");
+  }
+}
+
+async function disablePushNotifications() {
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    await unregisterPushSubscriptionFromServer(subscription);
+    if (subscription) await subscription.unsubscribe();
+    state.notificationsEnabled = false;
+    updateNotificationButton();
+    setStatusKey("notificationsDisabled", "");
+  } catch (error) {
+    console.error("Notification disable failed:", error);
+    setStatusKey("notificationsFailed", "demo");
+  }
+}
+
+async function syncPushSubscriptionIfAllowed() {
+  if (!state.notificationSupported || Notification.permission !== "granted" || els.chatPanel.hidden) {
+    state.notificationsEnabled = false;
+    updateNotificationButton();
+    return;
+  }
+
+  const registration = await getServiceWorkerRegistration();
+  const subscription = await registration.pushManager.getSubscription();
+  if (!subscription) {
+    state.notificationsEnabled = false;
+    updateNotificationButton();
+    return;
+  }
+
+  await savePushSubscription(subscription);
+  state.notificationsEnabled = true;
+  updateNotificationButton();
+}
+
+async function getServiceWorkerRegistration() {
+  const existing = await navigator.serviceWorker.getRegistration("/");
+  if (existing) return existing;
+  await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+  return navigator.serviceWorker.ready;
+}
+
+async function savePushSubscription(subscription) {
+  const response = await fetch("/api/push/subscribe", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      room: state.room,
+      clientId: state.clientId,
+      name: state.name,
+      language: state.language,
+      subscription: subscription.toJSON()
+    })
+  });
+  if (!response.ok) throw new Error("Push subscription failed.");
+}
+
+async function unregisterPushSubscriptionFromServer(subscription) {
+  let endpoint = subscription?.endpoint;
+  if (!endpoint && state.notificationSupported && "serviceWorker" in navigator) {
+    const registration = await navigator.serviceWorker.getRegistration("/");
+    const currentSubscription = await registration?.pushManager.getSubscription();
+    endpoint = currentSubscription?.endpoint;
+  }
+  if (!endpoint) return;
+
+  await fetch("/api/push/unsubscribe", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ endpoint })
+  });
+}
+
+function updateNotificationButton() {
+  els.notificationButton.hidden = !state.notificationSupported;
+  if (!state.notificationSupported) return;
+  els.notificationButton.classList.toggle("active", state.notificationsEnabled);
+  setButtonLabel(els.notificationButton, t(state.notificationsEnabled ? "notificationsOff" : "notificationsOn"));
 }
 
 async function sendMessage(event) {
@@ -471,6 +658,7 @@ function applyUiLanguage() {
 
   els.joinButton.textContent = t("join");
   setButtonLabel(els.newRoomButton, t("newRoom"));
+  updateNotificationButton();
   setButtonLabel(els.copyLinkButton, t("copyLink"));
   setButtonLabel(els.leaveRoomButton, t("leaveRoom"));
   setButtonLabel(els.sendButton, t("send"));
@@ -570,4 +758,15 @@ function randomRoom() {
 function roomFromPath() {
   const match = location.pathname.match(/^\/room\/([^/]+)$/);
   return match ? normalizeRoom(decodeURIComponent(match[1])) : "";
+}
+
+function urlBase64ToUint8Array(value) {
+  const padding = "=".repeat((4 - (value.length % 4)) % 4);
+  const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  const output = new Uint8Array(raw.length);
+  for (let index = 0; index < raw.length; index += 1) {
+    output[index] = raw.charCodeAt(index);
+  }
+  return output;
 }
