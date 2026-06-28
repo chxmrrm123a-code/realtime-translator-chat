@@ -239,6 +239,12 @@ textarea:disabled {
   color: var(--coral);
 }
 
+.icon-button.active {
+  border-color: rgba(31, 157, 117, 0.32);
+  background: var(--soft-green);
+  color: var(--green);
+}
+
 .icon-button.danger:hover {
   border-color: rgba(216, 92, 74, 0.46);
   background: var(--soft-coral);
