@@ -126,9 +126,32 @@ h1 {
   box-shadow: var(--shadow);
 }
 
+.join-settings-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.language-switch-field {
+  width: min(220px, 100%);
+}
+
+.label-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.label-with-icon svg {
+  width: 16px;
+  height: 16px;
+  color: var(--blue);
+  stroke-width: 2.2;
+}
+
 .field-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -273,8 +296,18 @@ textarea:disabled {
   color: var(--coral);
 }
 
+.icon-button.success {
+  color: var(--green);
+}
+
 .icon-button.active {
   border-color: rgba(31, 157, 117, 0.32);
+  background: var(--soft-green);
+  color: var(--green);
+}
+
+.icon-button.success:hover {
+  border-color: rgba(31, 157, 117, 0.38);
   background: var(--soft-green);
   color: var(--green);
 }
@@ -394,6 +427,12 @@ svg {
   font-size: 0.9rem;
 }
 
+.rules-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .rules-list {
   display: grid;
   gap: 8px;
@@ -409,6 +448,14 @@ svg {
 .rule-input {
   min-height: 40px;
   font-size: 0.9rem;
+}
+
+.rules-panel-foot {
+  min-height: 18px;
+  color: var(--green);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: right;
 }
 
 .messages {
@@ -529,6 +576,14 @@ svg {
 
   .field-grid {
     grid-template-columns: 1fr;
+  }
+
+  .join-settings-bar {
+    justify-content: stretch;
+  }
+
+  .language-switch-field {
+    width: 100%;
   }
 
   .join-panel {
