@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#2563eb" />
     <title>AI 통역 채팅</title>
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/styles.css?v=10" />
+    <link rel="stylesheet" href="/styles.css?v=11" />
   </head>
   <body>
     <div class="app-shell">
@@ -20,6 +20,26 @@
 
       <main class="layout">
         <section class="join-panel" id="joinPanel" aria-label="방 입장">
+          <div class="join-settings-bar">
+            <label class="language-switch-field">
+              <span class="label-with-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20" />
+                  <path d="M12 2a15.3 15.3 0 0 1 0 20" />
+                  <path d="M12 2a15.3 15.3 0 0 0 0 20" />
+                </svg>
+                <span>Language</span>
+              </span>
+              <select id="uiLanguageInput">
+                <option value="ko">&#54620;&#44397;&#50612;</option>
+                <option value="en">English</option>
+                <option value="ja">&#26085;&#26412;&#35486;</option>
+                <option value="zh">&#20013;&#25991;</option>
+                <option value="vi">Ti&#7871;ng Vi&#7879;t</option>
+              </select>
+            </label>
+          </div>
           <div class="field-grid">
             <label>
               <span>방 코드</span>
@@ -37,16 +57,6 @@
                 <option value="ja">日本語</option>
                 <option value="zh">中文</option>
                 <option value="vi">Tiếng Việt</option>
-              </select>
-            </label>
-            <label>
-              <span>Language</span>
-              <select id="uiLanguageInput">
-                <option value="ko">&#54620;&#44397;&#50612;</option>
-                <option value="en">English</option>
-                <option value="ja">&#26085;&#26412;&#35486;</option>
-                <option value="zh">&#20013;&#25991;</option>
-                <option value="vi">Ti&#7871;ng Vi&#7879;t</option>
               </select>
             </label>
             <label class="wide-field">
@@ -123,14 +133,27 @@
           <div class="rules-panel" id="translationRulesPanel" hidden>
             <div class="rules-panel-head">
               <strong id="translationRulesTitle">번역 규칙</strong>
-              <button class="icon-button small" id="addRuleButton" type="button" title="규칙 추가" aria-label="규칙 추가">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 5v14" />
-                  <path d="M5 12h14" />
-                </svg>
-              </button>
+              <div class="rules-panel-actions">
+                <button class="icon-button small success" id="applyRulesButton" type="button" title="규칙 적용" aria-label="규칙 적용">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                </button>
+                <button class="icon-button small" id="addRuleButton" type="button" title="규칙 추가" aria-label="규칙 추가">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 5v14" />
+                    <path d="M5 12h14" />
+                  </svg>
+                </button>
+                <button class="icon-button small" id="collapseRulesButton" type="button" title="규칙 접기" aria-label="규칙 접기">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m18 15-6-6-6 6" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div class="rules-list" id="translationRulesList"></div>
+            <div class="rules-panel-foot" id="rulesFeedback">규칙 저장됨</div>
           </div>
 
           <ol class="messages" id="messages" aria-live="polite"></ol>
@@ -155,6 +178,6 @@
       </main>
     </div>
 
-    <script src="/app.js?v=10" type="module"></script>
+    <script src="/app.js?v=11" type="module"></script>
   </body>
 </html>
