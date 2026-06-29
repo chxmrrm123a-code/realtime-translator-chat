@@ -17,6 +17,11 @@ const uiText = {
     interfaceLanguage: "Language",
     translationGuide: "번역 지시사항",
     translationGuidePlaceholder: "예: 나는 anh, 상대는 em / 존댓말 / 회사 업무 말투",
+    translationRules: "번역 규칙",
+    addRule: "규칙 추가",
+    deleteRule: "규칙 삭제",
+    rulePlaceholder: "규칙 입력",
+    ruleEmpty: "규칙을 추가하면 다음 메시지부터 적용돼요.",
     helpStepRoom: "새 방 코드를 만들거나 초대 링크로 들어오세요.",
     helpStepSettings: "내 언어와 번역 지시사항을 정한 뒤 입장하세요.",
     helpStepChat: "내가 보낸 말은 상대 언어로, 상대 말은 내 언어로 보여요.",
@@ -60,6 +65,11 @@ const uiText = {
     interfaceLanguage: "Language",
     translationGuide: "Translation instructions",
     translationGuidePlaceholder: "Example: anh for me, em for them / polite / business tone",
+    translationRules: "Translation rules",
+    addRule: "Add rule",
+    deleteRule: "Delete rule",
+    rulePlaceholder: "Type a rule",
+    ruleEmpty: "Add rules to apply them from your next message.",
     helpStepRoom: "Create a new room code or open an invite link.",
     helpStepSettings: "Choose your language and translation instructions before joining.",
     helpStepChat: "Your messages show in their language, and theirs show in yours.",
@@ -103,6 +113,11 @@ const uiText = {
     interfaceLanguage: "Language",
     translationGuide: "翻訳指示",
     translationGuidePlaceholder: "例: 私は anh、相手は em / 丁寧語 / ビジネス口調",
+    translationRules: "翻訳ルール",
+    addRule: "ルールを追加",
+    deleteRule: "ルールを削除",
+    rulePlaceholder: "ルールを入力",
+    ruleEmpty: "ルールを追加すると次のメッセージから適用されます。",
     helpStepRoom: "新しいルームコードを作るか、招待リンクから入ります。",
     helpStepSettings: "自分の言語と翻訳指示を設定してから入室します。",
     helpStepChat: "自分の発言は相手の言語で、相手の発言は自分の言語で表示されます。",
@@ -146,6 +161,11 @@ const uiText = {
     interfaceLanguage: "Language",
     translationGuide: "翻译指示",
     translationGuidePlaceholder: "例：我用 anh，对方用 em / 礼貌语气 / 商务语气",
+    translationRules: "翻译规则",
+    addRule: "添加规则",
+    deleteRule: "删除规则",
+    rulePlaceholder: "输入规则",
+    ruleEmpty: "添加规则后，将从下一条消息开始应用。",
     helpStepRoom: "创建新房间代码，或通过邀请链接进入。",
     helpStepSettings: "先选择你的语言和翻译指示，再进入房间。",
     helpStepChat: "你发的话会显示为对方语言，对方的话会显示为你的语言。",
@@ -189,6 +209,11 @@ const uiText = {
     interfaceLanguage: "Language",
     translationGuide: "Hướng dẫn dịch",
     translationGuidePlaceholder: "Ví dụ: tôi là anh, đối phương là em / lịch sự / công việc",
+    translationRules: "Quy tắc dịch",
+    addRule: "Thêm quy tắc",
+    deleteRule: "Xóa quy tắc",
+    rulePlaceholder: "Nhập quy tắc",
+    ruleEmpty: "Thêm quy tắc để áp dụng từ tin nhắn tiếp theo.",
     helpStepRoom: "Tạo mã phòng mới hoặc vào bằng liên kết mời.",
     helpStepSettings: "Chọn ngôn ngữ và hướng dẫn dịch của bạn trước khi vào.",
     helpStepChat: "Tin của bạn hiện bằng ngôn ngữ của họ, tin của họ hiện bằng ngôn ngữ của bạn.",
@@ -240,6 +265,11 @@ const els = {
   newRoomButton: document.querySelector("#newRoomButton"),
   roomCodeDisplay: document.querySelector("#roomCodeDisplay"),
   memberCount: document.querySelector("#memberCount"),
+  translationRulesButton: document.querySelector("#translationRulesButton"),
+  translationRulesPanel: document.querySelector("#translationRulesPanel"),
+  translationRulesTitle: document.querySelector("#translationRulesTitle"),
+  addRuleButton: document.querySelector("#addRuleButton"),
+  translationRulesList: document.querySelector("#translationRulesList"),
   notificationButton: document.querySelector("#notificationButton"),
   copyLinkButton: document.querySelector("#copyLinkButton"),
   leaveRoomButton: document.querySelector("#leaveRoomButton"),
@@ -251,12 +281,15 @@ const els = {
   sendButton: document.querySelector("#sendButton")
 };
 
+const initialTranslationRules = loadTranslationRules();
+
 const state = {
   room: roomFromPath() || localStorage.getItem("translator.room") || randomRoom(),
   name: localStorage.getItem("translator.name") || "",
   language: localStorage.getItem("translator.language") || "ko",
   uiLanguage: normalizeUiLanguage(localStorage.getItem("translator.uiLanguage") || detectUiLanguage()),
-  translationGuide: localStorage.getItem("translator.translationGuide") || "",
+  translationRules: initialTranslationRules,
+  translationGuide: buildTranslationGuide(initialTranslationRules),
   clientId: crypto.randomUUID(),
   eventSource: null,
   aiEnabled: false,
@@ -274,7 +307,7 @@ els.roomInput.value = state.room;
 els.nameInput.value = state.name;
 els.languageInput.value = state.language;
 els.uiLanguageInput.value = state.uiLanguage;
-els.translationGuideInput.value = state.translationGuide;
+els.translationGuideInput.value = displayTranslationRulesForInput(state.translationRules);
 
 els.joinButton.addEventListener("click", joinRoom);
 els.newRoomButton.addEventListener("click", () => {
@@ -284,6 +317,8 @@ els.newRoomButton.addEventListener("click", () => {
 els.copyLinkButton.addEventListener("click", copyRoomLink);
 els.leaveRoomButton.addEventListener("click", leaveRoom);
 els.composerLeaveButton.addEventListener("click", leaveRoom);
+els.translationRulesButton.addEventListener("click", toggleTranslationRulesPanel);
+els.addRuleButton.addEventListener("click", addTranslationRuleRow);
 els.notificationButton.addEventListener("click", toggleNotifications);
 els.uiLanguageInput.addEventListener("change", () => {
   state.uiLanguage = normalizeUiLanguage(els.uiLanguageInput.value);
@@ -312,17 +347,17 @@ async function joinRoom() {
   state.room = normalizeRoom(els.roomInput.value);
   state.name = normalizeName(els.nameInput.value);
   state.language = els.languageInput.value;
-  state.translationGuide = normalizeTranslationGuide(els.translationGuideInput.value);
+  state.translationRules = parseTranslationRules(els.translationGuideInput.value);
+  saveTranslationRules();
   state.roomFullLimit = null;
 
   localStorage.setItem("translator.room", state.room);
   localStorage.setItem("translator.name", state.name);
   localStorage.setItem("translator.language", state.language);
-  localStorage.setItem("translator.translationGuide", state.translationGuide);
 
   els.roomInput.value = state.room;
   els.nameInput.value = state.name;
-  els.translationGuideInput.value = state.translationGuide;
+  els.translationGuideInput.value = displayTranslationRulesForInput(state.translationRules);
   els.roomCodeDisplay.textContent = state.room;
   els.messages.replaceChildren();
   state.seenMessageIds.clear();
@@ -333,6 +368,9 @@ async function joinRoom() {
   updateMemberCount();
   els.joinPanel.hidden = true;
   els.chatPanel.hidden = false;
+  els.translationRulesPanel.hidden = true;
+  updateTranslationRulesButton();
+  renderTranslationRulesPanel();
   history.replaceState(null, "", `/room/${encodeURIComponent(state.room)}`);
   connectEvents();
   syncPushSubscriptionIfAllowed().catch(() => {
@@ -413,7 +451,7 @@ function leaveRoom() {
   els.roomInput.value = state.room;
   els.nameInput.value = state.name;
   els.languageInput.value = state.language;
-  els.translationGuideInput.value = state.translationGuide;
+  els.translationGuideInput.value = displayTranslationRulesForInput(state.translationRules);
   els.roomInput.focus();
 }
 
@@ -556,6 +594,89 @@ function updateNotificationButton() {
   if (!state.notificationSupported) return;
   els.notificationButton.classList.toggle("active", state.notificationsEnabled);
   setButtonLabel(els.notificationButton, t(state.notificationsEnabled ? "notificationsOff" : "notificationsOn"));
+}
+
+function toggleTranslationRulesPanel() {
+  els.translationRulesPanel.hidden = !els.translationRulesPanel.hidden;
+  if (!els.translationRulesPanel.hidden) renderTranslationRulesPanel();
+  updateTranslationRulesButton();
+}
+
+function updateTranslationRulesButton() {
+  els.translationRulesButton.classList.toggle("active", !els.translationRulesPanel.hidden);
+}
+
+function renderTranslationRulesPanel() {
+  const rules = state.translationRules.length > 0 ? state.translationRules : [""];
+  els.translationRulesList.replaceChildren(
+    ...rules.map((rule, index) => createTranslationRuleRow(rule, index))
+  );
+}
+
+function createTranslationRuleRow(rule, index) {
+  const row = document.createElement("div");
+  row.className = "rule-row";
+
+  const input = document.createElement("input");
+  input.className = "rule-input";
+  input.maxLength = 220;
+  input.placeholder = state.translationRules.length === 0 ? t("ruleEmpty") : t("rulePlaceholder");
+  input.value = rule;
+  input.addEventListener("input", saveTranslationRulesFromPanel);
+
+  const deleteButton = document.createElement("button");
+  deleteButton.type = "button";
+  deleteButton.className = "icon-button small danger";
+  setButtonLabel(deleteButton, t("deleteRule"));
+  deleteButton.innerHTML = `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v5" />
+      <path d="M14 11v5" />
+    </svg>
+  `;
+  deleteButton.addEventListener("click", () => {
+    const nextRules = getPanelRuleValues();
+    nextRules.splice(index, 1);
+    state.translationRules = nextRules;
+    saveTranslationRules();
+    renderTranslationRulesPanel();
+  });
+
+  row.append(input, deleteButton);
+  return row;
+}
+
+function addTranslationRuleRow() {
+  const emptyInput = [...els.translationRulesList.querySelectorAll(".rule-input")].find(
+    (input) => !normalizeRuleText(input.value)
+  );
+  if (emptyInput) {
+    emptyInput.focus();
+    return;
+  }
+
+  const currentRules = getPanelRuleValues();
+  if (currentRules.length >= 8) return;
+  state.translationRules = currentRules;
+  saveTranslationRules();
+  const row = createTranslationRuleRow("", currentRules.length);
+  els.translationRulesList.append(row);
+  row.querySelector("input")?.focus();
+}
+
+function saveTranslationRulesFromPanel() {
+  state.translationRules = getPanelRuleValues();
+  saveTranslationRules();
+}
+
+function getPanelRuleValues() {
+  return [...els.translationRulesList.querySelectorAll(".rule-input")]
+    .map((input) => normalizeRuleText(input.value))
+    .filter(Boolean)
+    .slice(0, 8);
 }
 
 async function sendMessage(event) {
@@ -706,16 +827,21 @@ function applyUiLanguage() {
   els.helpStepRoom.textContent = t("helpStepRoom");
   els.helpStepSettings.textContent = t("helpStepSettings");
   els.helpStepChat.textContent = t("helpStepChat");
+  els.translationRulesTitle.textContent = t("translationRules");
 
   els.joinButton.textContent = t("join");
   setButtonLabel(els.newRoomButton, t("newRoom"));
   updateNotificationButton();
+  updateTranslationRulesButton();
+  setButtonLabel(els.translationRulesButton, t("translationRules"));
+  setButtonLabel(els.addRuleButton, t("addRule"));
   setButtonLabel(els.copyLinkButton, t("copyLink"));
   setButtonLabel(els.leaveRoomButton, t("leaveRoom"));
   setButtonLabel(els.composerLeaveButton, t("leaveRoom"));
   setButtonLabel(els.sendButton, t("send"));
   els.messageInput.placeholder = t("messagePlaceholder");
   els.translationGuideInput.placeholder = t("translationGuidePlaceholder");
+  if (!els.translationRulesPanel.hidden) renderTranslationRulesPanel();
   els.joinPanel.setAttribute("aria-label", t("join"));
   els.chatPanel.setAttribute("aria-label", t("chatRoom"));
   document.querySelector(".room-label").textContent = t("room");
@@ -800,7 +926,51 @@ function normalizeName(value) {
 }
 
 function normalizeTranslationGuide(value) {
-  return String(value || "").trim().replace(/\s+/g, " ").slice(0, 500);
+  return parseTranslationRules(value)
+    .map((rule, index) => `${index + 1}. ${rule}`)
+    .join("\n")
+    .slice(0, 1_000);
+}
+
+function normalizeRuleText(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").slice(0, 220);
+}
+
+function parseTranslationRules(value) {
+  return String(value || "")
+    .split(/\r?\n|\s+\/\s+|;|；/g)
+    .map(normalizeRuleText)
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function loadTranslationRules() {
+  try {
+    const stored = JSON.parse(localStorage.getItem("translator.translationRules") || "[]");
+    if (Array.isArray(stored)) {
+      const rules = stored.map(normalizeRuleText).filter(Boolean).slice(0, 8);
+      if (rules.length > 0) return rules;
+    }
+  } catch {
+    // Ignore bad local storage and fall back to the previous single-field value.
+  }
+  return parseTranslationRules(localStorage.getItem("translator.translationGuide") || "");
+}
+
+function saveTranslationRules() {
+  state.translationRules = state.translationRules.map(normalizeRuleText).filter(Boolean).slice(0, 8);
+  state.translationGuide = buildTranslationGuide(state.translationRules);
+  localStorage.setItem("translator.translationRules", JSON.stringify(state.translationRules));
+  localStorage.setItem("translator.translationGuide", state.translationGuide);
+  els.translationGuideInput.value = displayTranslationRulesForInput(state.translationRules);
+}
+
+function buildTranslationGuide(rules) {
+  return rules.map((rule, index) => `${index + 1}. ${rule}`).join("\n").slice(0, 1_000);
+}
+
+function displayTranslationRulesForInput(rules) {
+  return rules.join(" / ");
 }
 
 function randomRoom() {
