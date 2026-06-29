@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#2563eb" />
     <title>AI 통역 채팅</title>
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/styles.css?v=7" />
+    <link rel="stylesheet" href="/styles.css?v=8" />
   </head>
   <body>
     <div class="app-shell">
@@ -51,8 +51,22 @@
             </label>
             <label class="wide-field">
               <span>번역 지시사항</span>
-              <input id="translationGuideInput" autocomplete="off" maxlength="500" placeholder="예: 나는 anh, 상대는 em으로 번역" />
+              <input id="translationGuideInput" autocomplete="off" maxlength="500" placeholder="예: 나는 anh, 상대는 em / 존댓말 / 회사 업무 말투" />
             </label>
+          </div>
+          <div class="join-help" aria-label="사용 안내">
+            <div class="join-help-item">
+              <span class="join-help-number">1</span>
+              <span id="helpStepRoom">새 방 코드를 만들거나 초대 링크로 들어오세요.</span>
+            </div>
+            <div class="join-help-item">
+              <span class="join-help-number">2</span>
+              <span id="helpStepSettings">내 언어와 번역 지시사항을 정한 뒤 입장하세요.</span>
+            </div>
+            <div class="join-help-item">
+              <span class="join-help-number">3</span>
+              <span id="helpStepChat">내가 보낸 말은 상대 언어로, 상대 말은 내 언어로 보여요.</span>
+            </div>
           </div>
           <div class="join-actions">
             <button class="primary-button" id="joinButton">입장</button>
@@ -112,6 +126,6 @@
       </main>
     </div>
 
-    <script src="/app.js?v=7" type="module"></script>
+    <script src="/app.js?v=8" type="module"></script>
   </body>
 </html>
