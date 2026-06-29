@@ -16,7 +16,10 @@ const uiText = {
     chatLanguage: "내 언어",
     interfaceLanguage: "Language",
     translationGuide: "번역 지시사항",
-    translationGuidePlaceholder: "예: 나는 anh, 상대는 em으로 번역",
+    translationGuidePlaceholder: "예: 나는 anh, 상대는 em / 존댓말 / 회사 업무 말투",
+    helpStepRoom: "새 방 코드를 만들거나 초대 링크로 들어오세요.",
+    helpStepSettings: "내 언어와 번역 지시사항을 정한 뒤 입장하세요.",
+    helpStepChat: "내가 보낸 말은 상대 언어로, 상대 말은 내 언어로 보여요.",
     join: "입장",
     newRoom: "새 방 코드",
     chatRoom: "채팅방",
@@ -56,7 +59,10 @@ const uiText = {
     chatLanguage: "My language",
     interfaceLanguage: "Language",
     translationGuide: "Translation instructions",
-    translationGuidePlaceholder: "Example: Use anh for me and em for the other person",
+    translationGuidePlaceholder: "Example: anh for me, em for them / polite / business tone",
+    helpStepRoom: "Create a new room code or open an invite link.",
+    helpStepSettings: "Choose your language and translation instructions before joining.",
+    helpStepChat: "Your messages show in their language, and theirs show in yours.",
     join: "Join",
     newRoom: "New room code",
     chatRoom: "Chat room",
@@ -96,7 +102,10 @@ const uiText = {
     chatLanguage: "自分の言語",
     interfaceLanguage: "Language",
     translationGuide: "翻訳指示",
-    translationGuidePlaceholder: "例: 私は anh、相手は em として訳す",
+    translationGuidePlaceholder: "例: 私は anh、相手は em / 丁寧語 / ビジネス口調",
+    helpStepRoom: "新しいルームコードを作るか、招待リンクから入ります。",
+    helpStepSettings: "自分の言語と翻訳指示を設定してから入室します。",
+    helpStepChat: "自分の発言は相手の言語で、相手の発言は自分の言語で表示されます。",
     join: "入室",
     newRoom: "新しいルームコード",
     chatRoom: "チャットルーム",
@@ -136,7 +145,10 @@ const uiText = {
     chatLanguage: "我的语言",
     interfaceLanguage: "Language",
     translationGuide: "翻译指示",
-    translationGuidePlaceholder: "例：把我译成 anh，对方译成 em",
+    translationGuidePlaceholder: "例：我用 anh，对方用 em / 礼貌语气 / 商务语气",
+    helpStepRoom: "创建新房间代码，或通过邀请链接进入。",
+    helpStepSettings: "先选择你的语言和翻译指示，再进入房间。",
+    helpStepChat: "你发的话会显示为对方语言，对方的话会显示为你的语言。",
     join: "进入",
     newRoom: "新房间代码",
     chatRoom: "聊天房间",
@@ -176,7 +188,10 @@ const uiText = {
     chatLanguage: "Ngôn ngữ của tôi",
     interfaceLanguage: "Language",
     translationGuide: "Hướng dẫn dịch",
-    translationGuidePlaceholder: "Ví dụ: Dịch tôi là anh, đối phương là em",
+    translationGuidePlaceholder: "Ví dụ: tôi là anh, đối phương là em / lịch sự / công việc",
+    helpStepRoom: "Tạo mã phòng mới hoặc vào bằng liên kết mời.",
+    helpStepSettings: "Chọn ngôn ngữ và hướng dẫn dịch của bạn trước khi vào.",
+    helpStepChat: "Tin của bạn hiện bằng ngôn ngữ của họ, tin của họ hiện bằng ngôn ngữ của bạn.",
     join: "Vào phòng",
     newRoom: "Mã phòng mới",
     chatRoom: "Phòng chat",
@@ -218,6 +233,9 @@ const els = {
   languageInput: document.querySelector("#languageInput"),
   uiLanguageInput: document.querySelector("#uiLanguageInput"),
   translationGuideInput: document.querySelector("#translationGuideInput"),
+  helpStepRoom: document.querySelector("#helpStepRoom"),
+  helpStepSettings: document.querySelector("#helpStepSettings"),
+  helpStepChat: document.querySelector("#helpStepChat"),
   joinButton: document.querySelector("#joinButton"),
   newRoomButton: document.querySelector("#newRoomButton"),
   roomCodeDisplay: document.querySelector("#roomCodeDisplay"),
@@ -669,6 +687,9 @@ function applyUiLanguage() {
   setLabelText(els.languageInput, "chatLanguage");
   setLabelText(els.uiLanguageInput, "interfaceLanguage");
   setLabelText(els.translationGuideInput, "translationGuide");
+  els.helpStepRoom.textContent = t("helpStepRoom");
+  els.helpStepSettings.textContent = t("helpStepSettings");
+  els.helpStepChat.textContent = t("helpStepChat");
 
   els.joinButton.textContent = t("join");
   setButtonLabel(els.newRoomButton, t("newRoom"));
