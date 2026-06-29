@@ -88,7 +88,12 @@ function normalizeName(value) {
 }
 
 function normalizeTranslationGuide(value) {
-  return String(value || "").trim().replace(/\s+/g, " ").slice(0, 500);
+  return String(value || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim().replace(/\s+/g, " "))
+    .filter(Boolean)
+    .join("\n")
+    .slice(0, 1_000);
 }
 
 function sendJson(res, statusCode, payload) {
