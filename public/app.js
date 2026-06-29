@@ -243,6 +243,7 @@ const els = {
   notificationButton: document.querySelector("#notificationButton"),
   copyLinkButton: document.querySelector("#copyLinkButton"),
   leaveRoomButton: document.querySelector("#leaveRoomButton"),
+  composerLeaveButton: document.querySelector("#composerLeaveButton"),
   memberRow: document.querySelector("#memberRow"),
   messages: document.querySelector("#messages"),
   messageForm: document.querySelector("#messageForm"),
@@ -261,6 +262,8 @@ const state = {
   aiEnabled: false,
   notificationSupported: false,
   notificationsEnabled: false,
+  sending: false,
+  seenMessageIds: new Set(),
   memberCount: 0,
   statusKey: "waiting",
   statusClass: "",
@@ -280,6 +283,7 @@ els.newRoomButton.addEventListener("click", () => {
 });
 els.copyLinkButton.addEventListener("click", copyRoomLink);
 els.leaveRoomButton.addEventListener("click", leaveRoom);
+els.composerLeaveButton.addEventListener("click", leaveRoom);
 els.notificationButton.addEventListener("click", toggleNotifications);
 els.uiLanguageInput.addEventListener("change", () => {
   state.uiLanguage = normalizeUiLanguage(els.uiLanguageInput.value);
@@ -290,7 +294,9 @@ els.messageForm.addEventListener("submit", sendMessage);
 els.messageInput.addEventListener("input", resizeComposer);
 els.messageInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.shiftKey) {
+    if (event.isComposing || event.keyCode === 229) return;
     event.preventDefault();
+    if (state.sending) return;
     els.messageForm.requestSubmit();
   }
 });
@@ -319,6 +325,8 @@ async function joinRoom() {
   els.translationGuideInput.value = state.translationGuide;
   els.roomCodeDisplay.textContent = state.room;
   els.messages.replaceChildren();
+  state.seenMessageIds.clear();
+  state.sending = false;
   els.messageInput.disabled = false;
   els.sendButton.disabled = false;
   state.memberCount = 0;
@@ -389,6 +397,8 @@ function leaveRoom() {
 
   els.messageInput.value = "";
   resizeComposer();
+  state.seenMessageIds.clear();
+  state.sending = false;
   els.messageInput.disabled = false;
   els.sendButton.disabled = false;
   els.messages.replaceChildren();
@@ -550,9 +560,11 @@ function updateNotificationButton() {
 
 async function sendMessage(event) {
   event.preventDefault();
+  if (state.sending) return;
   const text = els.messageInput.value.trim();
   if (!text) return;
 
+  state.sending = true;
   els.sendButton.disabled = true;
   try {
     const response = await fetch("/api/message", {
@@ -573,6 +585,7 @@ async function sendMessage(event) {
   } catch {
     setStatusKey("sendFailed", "demo");
   } finally {
+    state.sending = false;
     els.sendButton.disabled = false;
     els.messageInput.focus();
   }
@@ -597,6 +610,9 @@ function renderMembers(members) {
 }
 
 function renderMessage(message) {
+  if (message.id && state.seenMessageIds.has(message.id)) return;
+  if (message.id) state.seenMessageIds.add(message.id);
+
   const item = document.createElement("li");
   item.className = `message${message.senderId === state.clientId ? " mine" : ""}`;
 
@@ -696,6 +712,7 @@ function applyUiLanguage() {
   updateNotificationButton();
   setButtonLabel(els.copyLinkButton, t("copyLink"));
   setButtonLabel(els.leaveRoomButton, t("leaveRoom"));
+  setButtonLabel(els.composerLeaveButton, t("leaveRoom"));
   setButtonLabel(els.sendButton, t("send"));
   els.messageInput.placeholder = t("messagePlaceholder");
   els.translationGuideInput.placeholder = t("translationGuidePlaceholder");
