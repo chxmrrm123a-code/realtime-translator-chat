@@ -372,6 +372,45 @@ svg {
   background: var(--green);
 }
 
+.rules-panel {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.rules-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rules-panel-head strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.rules-list {
+  display: grid;
+  gap: 8px;
+}
+
+.rule-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  gap: 8px;
+  align-items: center;
+}
+
+.rule-input {
+  min-height: 40px;
+  font-size: 0.9rem;
+}
+
 .messages {
   list-style: none;
   margin: 0;
