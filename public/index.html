@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#2563eb" />
     <title>AI 통역 채팅</title>
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/styles.css?v=8" />
+    <link rel="stylesheet" href="/styles.css?v=9" />
   </head>
   <body>
     <div class="app-shell">
@@ -114,8 +114,15 @@
           <ol class="messages" id="messages" aria-live="polite"></ol>
 
           <form class="composer" id="messageForm">
+            <button class="icon-button composer-leave-button danger" id="composerLeaveButton" type="button" title="&#48169; &#45208;&#44032;&#44592;" aria-label="&#48169; &#45208;&#44032;&#44592;">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <path d="M16 17l5-5-5-5" />
+                <path d="M21 12H9" />
+              </svg>
+            </button>
             <textarea id="messageInput" rows="1" maxlength="2000" placeholder="메시지 입력"></textarea>
-            <button class="send-button" id="sendButton" title="전송" aria-label="전송">
+            <button class="send-button" id="sendButton" type="submit" title="전송" aria-label="전송">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="m22 2-7 20-4-9-9-4Z" />
                 <path d="M22 2 11 13" />
@@ -126,6 +133,6 @@
       </main>
     </div>
 
-    <script src="/app.js?v=8" type="module"></script>
+    <script src="/app.js?v=9" type="module"></script>
   </body>
 </html>
