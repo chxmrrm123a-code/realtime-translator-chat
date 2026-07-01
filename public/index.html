@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#2563eb" />
     <title>AI 통역 채팅</title>
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/styles.css?v=13" />
+    <link rel="stylesheet" href="/styles.css?v=14" />
   </head>
   <body>
     <div class="app-shell">
@@ -58,10 +58,6 @@
                 <option value="zh">中文</option>
                 <option value="vi">Tiếng Việt</option>
               </select>
-            </label>
-            <label>
-              <span>방 비밀번호</span>
-              <input id="roomPasswordInput" type="password" autocomplete="current-password" maxlength="40" />
             </label>
             <label class="wide-field">
               <span>번역 지시사항</span>
@@ -176,10 +172,6 @@
                 <input id="roomTitleInput" maxlength="40" placeholder="예: 베트남 법인 업무방" />
               </label>
               <label>
-                <span>새 비밀번호</span>
-                <input id="roomSettingsPasswordInput" type="password" autocomplete="new-password" maxlength="40" placeholder="바꿀 때만 입력" />
-              </label>
-              <label>
                 <span>초대 링크 만료</span>
                 <select id="inviteExpiryInput">
                   <option value="0">만료 없음</option>
@@ -187,10 +179,6 @@
                   <option value="1440">24시간</option>
                   <option value="10080">7일</option>
                 </select>
-              </label>
-              <label class="check-field">
-                <input id="clearPasswordInput" type="checkbox" />
-                <span>비밀번호 해제</span>
               </label>
             </div>
             <div class="settings-feedback" id="roomSettingsFeedback"></div>
@@ -268,6 +256,6 @@
       </main>
     </div>
 
-    <script src="/app.js?v=13" type="module"></script>
+    <script src="/app.js?v=14" type="module"></script>
   </body>
 </html>
