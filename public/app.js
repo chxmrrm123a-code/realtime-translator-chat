@@ -37,7 +37,6 @@ const uiText = {
     languageMismatch: "언어 확인",
     languageMismatchDetail: (detected, selected) =>
       `입력은 ${detected}처럼 보여요. 내 언어는 ${selected}입니다. 수정하거나 다시 전송하면 그대로 보냅니다.`,
-    roomPassword: "방 비밀번호",
     joinGlossary: "용어집",
     guideIntroTitle: "번역을 내 상황에 맞출 수 있어요",
     guideIntroInstructions: "번역 지시사항에는 말투, 호칭, 관계를 적어두세요.",
@@ -46,9 +45,6 @@ const uiText = {
     roomSettings: "방 설정",
     roomName: "방 이름",
     roomNamePlaceholder: "예: 베트남 법인 업무방",
-    roomPasswordNew: "새 비밀번호",
-    roomPasswordPlaceholder: "바꿀 때만 입력",
-    clearPassword: "비밀번호 해제",
     inviteExpiry: "초대 링크 만료",
     expiryNever: "만료 없음",
     expiry1h: "1시간",
@@ -58,8 +54,6 @@ const uiText = {
     closeRoomSettings: "설정 접기",
     settingsSaved: "방 설정 저장됨",
     settingsOwnerOnly: "방을 만든 사람만 설정을 바꿀 수 있어요.",
-    passwordRequired: "비밀번호가 필요한 방이에요.",
-    passwordWrong: "비밀번호가 맞지 않아요.",
     roomExpired: "초대 링크가 만료됐어요.",
     peerWaiting: "상대방을 기다리는 중",
     peerOnlineOne: "상대방 접속 중",
@@ -146,7 +140,6 @@ const uiText = {
     languageMismatch: "Check language",
     languageMismatchDetail: (detected, selected) =>
       `This looks like ${detected}. Your language is set to ${selected}. Edit it, or send again to continue.`,
-    roomPassword: "Room password",
     joinGlossary: "Glossary",
     guideIntroTitle: "Tune translation to your situation",
     guideIntroInstructions: "Use instructions for tone, pronouns, relationship, and address terms.",
@@ -155,9 +148,6 @@ const uiText = {
     roomSettings: "Room settings",
     roomName: "Room name",
     roomNamePlaceholder: "Example: Vietnam office chat",
-    roomPasswordNew: "New password",
-    roomPasswordPlaceholder: "Only when changing",
-    clearPassword: "Remove password",
     inviteExpiry: "Invite link expiry",
     expiryNever: "No expiry",
     expiry1h: "1 hour",
@@ -167,8 +157,6 @@ const uiText = {
     closeRoomSettings: "Collapse settings",
     settingsSaved: "Room settings saved",
     settingsOwnerOnly: "Only the room creator can change settings.",
-    passwordRequired: "This room needs a password.",
-    passwordWrong: "The password is incorrect.",
     roomExpired: "This invite link has expired.",
     peerWaiting: "Waiting for the other side",
     peerOnlineOne: "Other side online",
@@ -255,7 +243,6 @@ const uiText = {
     languageMismatch: "言語を確認",
     languageMismatchDetail: (detected, selected) =>
       `入力は${detected}のように見えます。自分の言語は${selected}です。修正するか、もう一度送信するとそのまま送れます。`,
-    roomPassword: "ルームパスワード",
     joinGlossary: "用語集",
     guideIntroTitle: "翻訳を状況に合わせられます",
     guideIntroInstructions: "翻訳指示には口調、呼び方、関係性を書いてください。",
@@ -264,9 +251,6 @@ const uiText = {
     roomSettings: "ルーム設定",
     roomName: "ルーム名",
     roomNamePlaceholder: "例: ベトナム法人業務ルーム",
-    roomPasswordNew: "新しいパスワード",
-    roomPasswordPlaceholder: "変更時のみ入力",
-    clearPassword: "パスワード解除",
     inviteExpiry: "招待リンク期限",
     expiryNever: "期限なし",
     expiry1h: "1時間",
@@ -276,8 +260,6 @@ const uiText = {
     closeRoomSettings: "設定を閉じる",
     settingsSaved: "ルーム設定を保存しました",
     settingsOwnerOnly: "ルーム作成者だけが設定を変更できます。",
-    passwordRequired: "パスワードが必要なルームです。",
-    passwordWrong: "パスワードが違います。",
     roomExpired: "招待リンクの期限が切れました。",
     peerWaiting: "相手の参加を待っています",
     peerOnlineOne: "相手がオンライン",
@@ -364,7 +346,6 @@ const uiText = {
     languageMismatch: "检查语言",
     languageMismatchDetail: (detected, selected) =>
       `输入看起来像${detected}。你的语言设置为${selected}。请修改，或再次发送以继续。`,
-    roomPassword: "房间密码",
     joinGlossary: "术语表",
     guideIntroTitle: "可以按你的场景调整翻译",
     guideIntroInstructions: "在翻译指示里写语气、称呼、关系。",
@@ -373,9 +354,6 @@ const uiText = {
     roomSettings: "房间设置",
     roomName: "房间名称",
     roomNamePlaceholder: "例：越南法人业务房",
-    roomPasswordNew: "新密码",
-    roomPasswordPlaceholder: "仅修改时填写",
-    clearPassword: "取消密码",
     inviteExpiry: "邀请链接过期",
     expiryNever: "不过期",
     expiry1h: "1小时",
@@ -385,8 +363,6 @@ const uiText = {
     closeRoomSettings: "收起设置",
     settingsSaved: "房间设置已保存",
     settingsOwnerOnly: "只有房间创建者可以修改设置。",
-    passwordRequired: "这个房间需要密码。",
-    passwordWrong: "密码不正确。",
     roomExpired: "邀请链接已过期。",
     peerWaiting: "等待对方加入",
     peerOnlineOne: "对方在线",
@@ -473,7 +449,6 @@ const uiText = {
     languageMismatch: "Kiểm tra ngôn ngữ",
     languageMismatchDetail: (detected, selected) =>
       `Tin nhắn trông giống ${detected}. Ngôn ngữ của bạn đang là ${selected}. Sửa lại hoặc gửi lần nữa để tiếp tục.`,
-    roomPassword: "Mật khẩu phòng",
     joinGlossary: "Thuật ngữ",
     guideIntroTitle: "Có thể chỉnh bản dịch theo tình huống",
     guideIntroInstructions: "Ghi giọng điệu, cách xưng hô và quan hệ vào hướng dẫn dịch.",
@@ -482,9 +457,6 @@ const uiText = {
     roomSettings: "Cài đặt phòng",
     roomName: "Tên phòng",
     roomNamePlaceholder: "Ví dụ: Phòng công việc pháp nhân Việt Nam",
-    roomPasswordNew: "Mật khẩu mới",
-    roomPasswordPlaceholder: "Chỉ nhập khi đổi",
-    clearPassword: "Gỡ mật khẩu",
     inviteExpiry: "Hết hạn liên kết mời",
     expiryNever: "Không hết hạn",
     expiry1h: "1 giờ",
@@ -494,8 +466,6 @@ const uiText = {
     closeRoomSettings: "Thu gọn cài đặt",
     settingsSaved: "Đã lưu cài đặt phòng",
     settingsOwnerOnly: "Chỉ người tạo phòng có thể đổi cài đặt.",
-    passwordRequired: "Phòng này cần mật khẩu.",
-    passwordWrong: "Mật khẩu không đúng.",
     roomExpired: "Liên kết mời đã hết hạn.",
     peerWaiting: "Đang chờ đối phương",
     peerOnlineOne: "Đối phương đang online",
@@ -563,7 +533,6 @@ const els = {
   roomInput: document.querySelector("#roomInput"),
   nameInput: document.querySelector("#nameInput"),
   languageInput: document.querySelector("#languageInput"),
-  roomPasswordInput: document.querySelector("#roomPasswordInput"),
   uiLanguageInput: document.querySelector("#uiLanguageInput"),
   translationGuideInput: document.querySelector("#translationGuideInput"),
   joinGlossaryInput: document.querySelector("#joinGlossaryInput"),
@@ -586,9 +555,7 @@ const els = {
   saveRoomSettingsButton: document.querySelector("#saveRoomSettingsButton"),
   closeRoomSettingsButton: document.querySelector("#closeRoomSettingsButton"),
   roomTitleInput: document.querySelector("#roomTitleInput"),
-  roomSettingsPasswordInput: document.querySelector("#roomSettingsPasswordInput"),
   inviteExpiryInput: document.querySelector("#inviteExpiryInput"),
-  clearPasswordInput: document.querySelector("#clearPasswordInput"),
   roomSettingsFeedback: document.querySelector("#roomSettingsFeedback"),
   translationRulesButton: document.querySelector("#translationRulesButton"),
   translationRulesPanel: document.querySelector("#translationRulesPanel"),
@@ -625,7 +592,6 @@ const state = {
   room: roomFromPath() || localStorage.getItem("translator.room") || randomRoom(),
   name: localStorage.getItem("translator.name") || "",
   language: localStorage.getItem("translator.language") || "ko",
-  roomPassword: "",
   uiLanguage: normalizeUiLanguage(localStorage.getItem("translator.uiLanguage") || detectUiLanguage()),
   translationRules: initialTranslationRules,
   translationGlossary: initialTranslationGlossary,
@@ -634,7 +600,6 @@ const state = {
   roomAccessToken: "",
   roomSettings: {
     title: "",
-    hasPassword: false,
     expiresAt: 0
   },
   isRoomOwner: false,
@@ -739,7 +704,6 @@ async function joinRoom() {
   state.room = normalizeRoom(els.roomInput.value);
   state.name = normalizeName(els.nameInput.value);
   state.language = els.languageInput.value;
-  state.roomPassword = els.roomPasswordInput.value;
   state.translationRules = parseTranslationRules(els.translationGuideInput.value);
   state.translationGlossary = normalizeGlossaryText(els.joinGlossaryInput.value);
   saveTranslationRules();
@@ -799,8 +763,7 @@ async function requestRoomJoin() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         room: state.room,
-        clientId: state.clientId,
-        password: state.roomPassword
+        clientId: state.clientId
       })
     });
     const payload = await response.json().catch(() => ({}));
@@ -818,8 +781,6 @@ async function requestRoomJoin() {
 }
 
 function statusKeyForRoomError(error, status) {
-  if (error === "password_required" || status === 401) return "passwordRequired";
-  if (error === "password_wrong" || status === 403) return "passwordWrong";
   if (error === "room_expired" || status === 410) return "roomExpired";
   return "sendFailed";
 }
@@ -827,7 +788,6 @@ function statusKeyForRoomError(error, status) {
 function applyRoomSettings(settings = {}, isOwner = state.isRoomOwner) {
   state.roomSettings = {
     title: normalizeRoomTitle(settings.title),
-    hasPassword: Boolean(settings.hasPassword),
     expiresAt: Number(settings.expiresAt || 0)
   };
   state.isRoomOwner = Boolean(isOwner);
@@ -870,23 +830,17 @@ function renderRoomSettingsPanel() {
   if (!els.roomSettingsPanel) return;
   els.roomTitleInput.value = state.roomSettings.title || "";
   els.roomTitleInput.placeholder = t("roomNamePlaceholder");
-  els.roomSettingsPasswordInput.value = "";
-  els.roomSettingsPasswordInput.placeholder = t("roomPasswordPlaceholder");
-  els.clearPasswordInput.checked = false;
   els.inviteExpiryInput.value = expiryValueFromSettings(state.roomSettings.expiresAt);
   els.roomSettingsFeedback.textContent = state.isRoomOwner
     ? settingsSummaryText()
     : t("settingsOwnerOnly");
   els.roomTitleInput.disabled = !state.isRoomOwner;
-  els.roomSettingsPasswordInput.disabled = !state.isRoomOwner;
   els.inviteExpiryInput.disabled = !state.isRoomOwner;
-  els.clearPasswordInput.disabled = !state.isRoomOwner || !state.roomSettings.hasPassword;
   els.saveRoomSettingsButton.disabled = !state.isRoomOwner;
 }
 
 function settingsSummaryText() {
   const parts = [];
-  if (state.roomSettings.hasPassword) parts.push(t("roomPassword"));
   const expiryText = expiryLabelFromValue(expiryValueFromSettings(state.roomSettings.expiresAt));
   if (expiryText !== t("expiryNever")) parts.push(expiryText);
   return parts.join(" · ") || t("settingsSaved");
@@ -907,8 +861,6 @@ async function saveRoomSettings() {
         clientId: state.clientId,
         roomAccessToken: state.roomAccessToken,
         title: els.roomTitleInput.value,
-        password: els.roomSettingsPasswordInput.value,
-        clearPassword: els.clearPasswordInput.checked,
         expiryMinutes: Number(els.inviteExpiryInput.value || 0)
       })
     });
@@ -975,13 +927,6 @@ function connectEvents() {
   state.eventSource.addEventListener("roomSettings", (event) => {
     const payload = JSON.parse(event.data);
     applyRoomSettings(payload.settings, payload.isOwner);
-  });
-
-  state.eventSource.addEventListener("roomLocked", () => {
-    state.eventSource.close();
-    state.eventSource = null;
-    leaveRoom();
-    setStatusKey("passwordRequired", "demo");
   });
 
   state.eventSource.addEventListener("roomExpired", () => {
@@ -1755,7 +1700,6 @@ function applyUiLanguage() {
   setLabelText(els.roomInput, "roomCode");
   setLabelText(els.nameInput, "nickname");
   setLabelText(els.languageInput, "chatLanguage");
-  setLabelText(els.roomPasswordInput, "roomPassword");
   setLabelText(els.uiLanguageInput, "interfaceLanguage");
   setLabelText(els.translationGuideInput, "translationGuide");
   setLabelText(els.joinGlossaryInput, "joinGlossary");
@@ -1770,9 +1714,7 @@ function applyUiLanguage() {
   els.translationRulesTitle.textContent = t("translationRules");
   els.glossaryTitle.textContent = t("glossary");
   setLabelText(els.roomTitleInput, "roomName");
-  setLabelText(els.roomSettingsPasswordInput, "roomPasswordNew");
   setLabelText(els.inviteExpiryInput, "inviteExpiry");
-  els.clearPasswordInput.closest("label").querySelector("span").textContent = t("clearPassword");
 
   els.joinButton.textContent = t("join");
   setButtonLabel(els.newRoomButton, t("newRoom"));
@@ -1797,7 +1739,6 @@ function applyUiLanguage() {
   els.joinGlossaryInput.placeholder = t("glossaryPlaceholder");
   els.glossaryInput.placeholder = t("glossaryPlaceholder");
   els.roomTitleInput.placeholder = t("roomNamePlaceholder");
-  els.roomSettingsPasswordInput.placeholder = t("roomPasswordPlaceholder");
   updateExpiryOptions();
   renderRoomSettingsPanel();
   updateRulesFeedback();
@@ -1954,10 +1895,10 @@ function normalizeTranslationGuide(value) {
 }
 
 function getClientId() {
-  const stored = localStorage.getItem("translator.clientId");
+  const stored = sessionStorage.getItem("translator.clientId");
   if (stored) return stored;
   const nextId = crypto.randomUUID();
-  localStorage.setItem("translator.clientId", nextId);
+  sessionStorage.setItem("translator.clientId", nextId);
   return nextId;
 }
 
