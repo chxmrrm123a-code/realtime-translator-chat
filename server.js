@@ -2,7 +2,14 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createPrivateKey, createSign, generateKeyPairSync, randomBytes } from "node:crypto";
+import {
+  createHash,
+  createPrivateKey,
+  createSign,
+  generateKeyPairSync,
+  randomBytes,
+  timingSafeEqual
+} from "node:crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, "public");
@@ -56,12 +63,31 @@ function getRoom(roomCode) {
       code: normalized,
       createdAt: Date.now(),
       lastActive: Date.now(),
+      ownerId: "",
+      title: "",
+      passwordSalt: "",
+      passwordHash: "",
+      expiresAt: 0,
+      accessTokens: new Map(),
+      typingClients: new Map(),
       clients: new Map(),
       history: []
     });
   }
   const room = rooms.get(normalized);
+  ensureRoomDefaults(room);
   room.lastActive = Date.now();
+  return room;
+}
+
+function ensureRoomDefaults(room) {
+  room.ownerId ||= "";
+  room.title ||= "";
+  room.passwordSalt ||= "";
+  room.passwordHash ||= "";
+  room.expiresAt ||= 0;
+  if (!room.accessTokens) room.accessTokens = new Map();
+  if (!room.typingClients) room.typingClients = new Map();
   return room;
 }
 
@@ -94,6 +120,73 @@ function normalizeTranslationGuide(value) {
     .filter(Boolean)
     .join("\n")
     .slice(0, 1_500);
+}
+
+function normalizeRoomTitle(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").slice(0, 40);
+}
+
+function normalizePassword(value) {
+  return String(value || "").trim().slice(0, 80);
+}
+
+function parseExpiryMinutes(value) {
+  const allowed = new Set([0, 60, 1440, 10080]);
+  const minutes = Number(value);
+  return allowed.has(minutes) ? minutes : 0;
+}
+
+function setRoomPassword(room, password) {
+  const clean = normalizePassword(password);
+  if (!clean) return;
+  room.passwordSalt = randomBytes(12).toString("hex");
+  room.passwordHash = hashRoomPassword(clean, room.passwordSalt);
+}
+
+function clearRoomPassword(room) {
+  room.passwordSalt = "";
+  room.passwordHash = "";
+}
+
+function hashRoomPassword(password, salt) {
+  return createHash("sha256").update(`${salt}:${password}`).digest("hex");
+}
+
+function verifyRoomPassword(room, password) {
+  if (!room.passwordHash) return true;
+  const clean = normalizePassword(password);
+  if (!clean || !room.passwordSalt) return false;
+  const expected = Buffer.from(room.passwordHash, "hex");
+  const actual = Buffer.from(hashRoomPassword(clean, room.passwordSalt), "hex");
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
+}
+
+function createRoomAccessToken(room, clientId) {
+  const token = randomBytes(18).toString("base64url");
+  room.accessTokens.set(token, {
+    clientId,
+    createdAt: Date.now()
+  });
+  return token;
+}
+
+function hasRoomAccess(room, clientId, token) {
+  if (!room.passwordHash) return true;
+  const access = room.accessTokens.get(String(token || ""));
+  return Boolean(access && access.clientId === clientId);
+}
+
+function isRoomExpired(room) {
+  return Boolean(room.expiresAt && room.expiresAt <= Date.now());
+}
+
+function serializeRoom(room) {
+  return {
+    code: room.code,
+    title: room.title || "",
+    hasPassword: Boolean(room.passwordHash),
+    expiresAt: room.expiresAt || 0
+  };
 }
 
 function sendJson(res, statusCode, payload) {
@@ -226,6 +319,32 @@ function broadcastPresence(room) {
   }
 }
 
+function broadcastTyping(room) {
+  const now = Date.now();
+  const typing = [...room.clients.values()]
+    .filter((client) => client.typing && now - client.typingAt < 4_000)
+    .map((client) => ({
+      id: client.id,
+      name: client.name,
+      language: client.language,
+      languageName: localNames[client.language]
+    }));
+
+  for (const client of room.clients.values()) {
+    sendSse(client, "typing", { room: room.code, typing });
+  }
+}
+
+function broadcastRoomSettings(room) {
+  for (const client of room.clients.values()) {
+    sendSse(client, "roomSettings", {
+      room: room.code,
+      settings: serializeRoom(room),
+      isOwner: client.id === room.ownerId
+    });
+  }
+}
+
 async function readRequestBody(req, limit = 32_000) {
   let body = "";
   for await (const chunk of req) {
@@ -235,6 +354,247 @@ async function readRequestBody(req, limit = 32_000) {
     }
   }
   return body ? JSON.parse(body) : {};
+}
+
+async function handleRoomJoin(req, res) {
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: "invalid_room_join" });
+    return;
+  }
+
+  const roomCode = normalizeRoom(payload.room);
+  const wasCreated = !rooms.has(roomCode);
+  const room = getRoom(roomCode);
+  const clientId = String(payload.clientId || "").slice(0, 64);
+  if (!clientId) {
+    sendJson(res, 422, { ok: false, error: "missing_client" });
+    return;
+  }
+
+  if (isRoomExpired(room)) {
+    sendJson(res, 410, { ok: false, error: "room_expired" });
+    return;
+  }
+
+  if (!room.ownerId) room.ownerId = clientId;
+
+  const password = normalizePassword(payload.password);
+  if (room.passwordHash && !verifyRoomPassword(room, password)) {
+    sendJson(res, password ? 403 : 401, {
+      ok: false,
+      error: password ? "password_wrong" : "password_required"
+    });
+    return;
+  }
+
+  if (wasCreated && password) setRoomPassword(room, password);
+
+  const roomAccessToken = createRoomAccessToken(room, clientId);
+  sendJson(res, 200, {
+    ok: true,
+    room: serializeRoom(room),
+    isOwner: room.ownerId === clientId,
+    roomAccessToken
+  });
+}
+
+async function handleRoomSettings(req, res) {
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: "invalid_room_settings" });
+    return;
+  }
+
+  const room = getRoom(payload.room);
+  const clientId = String(payload.clientId || "").slice(0, 64);
+  if (isRoomExpired(room)) {
+    sendJson(res, 410, { ok: false, error: "room_expired" });
+    return;
+  }
+  if (!hasRoomAccess(room, clientId, payload.roomAccessToken)) {
+    sendJson(res, 401, { ok: false, error: "password_required" });
+    return;
+  }
+  if (room.ownerId !== clientId) {
+    sendJson(res, 403, { ok: false, error: "owner_only" });
+    return;
+  }
+
+  room.title = normalizeRoomTitle(payload.title);
+  if (payload.clearPassword) {
+    clearRoomPassword(room);
+  } else if (normalizePassword(payload.password)) {
+    setRoomPassword(room, payload.password);
+  }
+
+  const expiryMinutes = parseExpiryMinutes(payload.expiryMinutes);
+  room.expiresAt = expiryMinutes ? Date.now() + expiryMinutes * 60_000 : 0;
+  room.lastActive = Date.now();
+
+  broadcastRoomSettings(room);
+  sendJson(res, 200, {
+    ok: true,
+    room: serializeRoom(room),
+    isOwner: true
+  });
+}
+
+async function handleTyping(req, res) {
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: "invalid_typing_payload" });
+    return;
+  }
+
+  const room = getRoom(payload.room);
+  const clientId = String(payload.clientId || "").slice(0, 64);
+  if (!hasRoomAccess(room, clientId, payload.roomAccessToken)) {
+    sendJson(res, 401, { ok: false, error: "password_required" });
+    return;
+  }
+
+  const client = room.clients.get(clientId);
+  if (client) {
+    client.typing = Boolean(payload.typing);
+    client.typingAt = Date.now();
+    broadcastTyping(room);
+  }
+  sendJson(res, 200, { ok: true });
+}
+
+async function handlePreview(req, res) {
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: "invalid_preview_payload" });
+    return;
+  }
+
+  const room = getRoom(payload.room);
+  const senderId = String(payload.senderId || "").slice(0, 64);
+  if (isRoomExpired(room)) {
+    sendJson(res, 410, { ok: false, error: "room_expired" });
+    return;
+  }
+  if (!hasRoomAccess(room, senderId, payload.roomAccessToken)) {
+    sendJson(res, 401, { ok: false, error: "password_required" });
+    return;
+  }
+
+  const text = String(payload.text || "").trim().slice(0, 2_000);
+  if (!text) {
+    sendJson(res, 422, { ok: false, error: "Message is empty." });
+    return;
+  }
+
+  const sourceLanguage = normalizeLanguage(payload.language);
+  const translationGuide = normalizeTranslationGuide(payload.translationGuide);
+  const targetLanguages = [
+    ...new Set(
+      [...room.clients.values()]
+        .filter((client) => client.id !== senderId)
+        .map((client) => client.language)
+        .filter((language) => language !== sourceLanguage)
+    )
+  ];
+
+  if (targetLanguages.length === 0) {
+    sendJson(res, 200, { ok: true, previews: [] });
+    return;
+  }
+
+  const context = room.history.slice(-10);
+  const previews = await Promise.all(
+    targetLanguages.map(async (targetLanguage) => {
+      const translation = await translateMessage({
+        text,
+        sourceLanguage,
+        targetLanguage,
+        context,
+        translationGuide
+      });
+      return {
+        targetLanguage,
+        targetLanguageName: localNames[targetLanguage],
+        translatedText: translation.text,
+        translationProvider: translation.provider,
+        translationError: translation.error || null
+      };
+    })
+  );
+
+  sendJson(res, 200, { ok: true, previews });
+}
+
+async function handleRetranslate(req, res) {
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: "invalid_retranslate_payload" });
+    return;
+  }
+
+  const room = getRoom(payload.room);
+  const token = String(payload.roomAccessToken || "");
+  const clientId = String(payload.clientId || "").slice(0, 64);
+  if (isRoomExpired(room)) {
+    sendJson(res, 410, { ok: false, error: "room_expired" });
+    return;
+  }
+
+  if (!hasRoomAccess(room, clientId, token)) {
+    sendJson(res, 401, { ok: false, error: "password_required" });
+    return;
+  }
+
+  const messageId = String(payload.messageId || "");
+  const messageIndex = room.history.findIndex((message) => message.id === messageId);
+  if (messageIndex < 0) {
+    sendJson(res, 404, { ok: false, error: "message_not_found" });
+    return;
+  }
+
+  const message = room.history[messageIndex];
+  const targetLanguage = normalizeLanguage(payload.targetLanguage);
+  const context = room.history.slice(Math.max(0, messageIndex - 10), messageIndex);
+  const styleInstruction = retranslateStyleInstruction(payload.style);
+  const translationGuide = normalizeTranslationGuide(
+    [message.translationGuide || "", payload.translationGuide || "", styleInstruction]
+      .filter(Boolean)
+      .join("\n")
+  );
+  const translation = await translateMessage({
+    text: message.text,
+    sourceLanguage: message.sourceLanguage,
+    targetLanguage,
+    context,
+    translationGuide
+  });
+
+  sendJson(res, 200, {
+    ok: true,
+    messageId: message.id,
+    targetLanguage,
+    targetLanguageName: localNames[targetLanguage],
+    translatedText: translation.text,
+    translationProvider: translation.provider,
+    translationError: translation.error || null
+  });
+}
+
+function retranslateStyleInstruction(style) {
+  if (style === "polite") return "Retranslate in a more polite and respectful tone.";
+  if (style === "business") return "Retranslate in a clearer professional workplace tone.";
+  return "Retranslate more naturally while keeping the original meaning.";
 }
 
 async function handlePushConfig(req, res) {
@@ -263,6 +623,10 @@ async function handlePushSubscribe(req, res) {
 
   const room = getRoom(payload.room);
   const clientId = String(payload.clientId || "").slice(0, 64);
+  if (!hasRoomAccess(room, clientId, payload.roomAccessToken)) {
+    sendJson(res, 401, { ok: false, error: "password_required" });
+    return;
+  }
   const language = normalizeLanguage(payload.language);
 
   pushSubscriptions.set(endpoint, {
@@ -317,6 +681,7 @@ async function handleEvents(req, res, url) {
   const id = String(url.searchParams.get("client") || randomBytes(8).toString("hex")).slice(0, 64);
   const name = normalizeName(url.searchParams.get("name"));
   const language = normalizeLanguage(url.searchParams.get("language"));
+  const token = String(url.searchParams.get("token") || "");
 
   res.writeHead(200, {
     "content-type": "text/event-stream; charset=utf-8",
@@ -325,6 +690,18 @@ async function handleEvents(req, res, url) {
     "x-accel-buffering": "no"
   });
   res.write("\n");
+
+  if (isRoomExpired(room)) {
+    sendSse({ res, closed: false }, "roomExpired", { room: room.code });
+    res.end();
+    return;
+  }
+
+  if (!hasRoomAccess(room, id, token)) {
+    sendSse({ res, closed: false }, "roomLocked", { room: room.code });
+    res.end();
+    return;
+  }
 
   const previous = room.clients.get(id);
   if (previous) {
@@ -346,15 +723,20 @@ async function handleEvents(req, res, url) {
     id,
     name,
     language,
+    typing: false,
+    typingAt: 0,
     res,
     closed: false,
     ping: setInterval(() => sendSse(client, "ping", { at: Date.now() }), 25_000)
   };
 
+  if (!room.ownerId) room.ownerId = id;
   room.clients.set(id, client);
   sendSse(client, "connected", {
     room: room.code,
     client: { id, name, language, languageName: localNames[language] },
+    roomSettings: serializeRoom(room),
+    isOwner: room.ownerId === id,
     aiEnabled: Boolean(process.env.OPENAI_API_KEY)
   });
   broadcastPresence(room);
@@ -367,7 +749,9 @@ async function handleEvents(req, res, url) {
     clearInterval(client.ping);
     if (room.clients.get(id) === client) {
       room.clients.delete(id);
+      client.typing = false;
       broadcastPresence(room);
+      broadcastTyping(room);
     }
   });
 }
@@ -406,6 +790,16 @@ async function handleMessage(req, res) {
   }
 
   const room = getRoom(payload.room);
+  const senderId = String(payload.senderId || "").slice(0, 64);
+  if (isRoomExpired(room)) {
+    sendJson(res, 410, { ok: false, error: "room_expired" });
+    return;
+  }
+  if (!hasRoomAccess(room, senderId, payload.roomAccessToken)) {
+    sendJson(res, 401, { ok: false, error: "password_required" });
+    return;
+  }
+
   const text = String(payload.text || "").trim().slice(0, 2_000);
   if (!text) {
     sendJson(res, 422, { ok: false, error: "Message is empty." });
@@ -417,7 +811,7 @@ async function handleMessage(req, res) {
   const message = {
     id: randomBytes(10).toString("hex"),
     room: room.code,
-    senderId: String(payload.senderId || "").slice(0, 64),
+    senderId,
     senderName: normalizeName(payload.senderName),
     sourceLanguage,
     sourceLanguageName: localNames[sourceLanguage],
@@ -866,6 +1260,31 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === "POST" && url.pathname === "/api/room/join") {
+    await handleRoomJoin(req, res);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/room/settings") {
+    await handleRoomSettings(req, res);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/preview") {
+    await handlePreview(req, res);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/retranslate") {
+    await handleRetranslate(req, res);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/typing") {
+    await handleTyping(req, res);
+    return;
+  }
+
   if (req.method === "POST" && url.pathname === "/api/push/subscribe") {
     await handlePushSubscribe(req, res);
     return;
@@ -901,6 +1320,23 @@ server.listen(port, host, () => {
 setInterval(() => {
   const now = Date.now();
   for (const [code, room] of rooms) {
+    if (isRoomExpired(room)) {
+      for (const client of room.clients.values()) {
+        sendSse(client, "roomExpired", { room: room.code });
+        client.closed = true;
+        clearInterval(client.ping);
+        client.res.end();
+      }
+      rooms.delete(code);
+      continue;
+    }
+
+    for (const [token, access] of room.accessTokens) {
+      if (now - access.createdAt > 24 * 60 * 60 * 1000) {
+        room.accessTokens.delete(token);
+      }
+    }
+
     if (room.clients.size === 0 && now - room.lastActive > 60 * 60 * 1000) {
       rooms.delete(code);
     }
