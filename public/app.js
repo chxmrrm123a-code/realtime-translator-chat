@@ -37,6 +37,47 @@ const uiText = {
     languageMismatch: "언어 확인",
     languageMismatchDetail: (detected, selected) =>
       `입력은 ${detected}처럼 보여요. 내 언어는 ${selected}입니다. 수정하거나 다시 전송하면 그대로 보냅니다.`,
+    roomPassword: "방 비밀번호",
+    joinGlossary: "용어집",
+    guideIntroTitle: "번역을 내 상황에 맞출 수 있어요",
+    guideIntroInstructions: "번역 지시사항에는 말투, 호칭, 관계를 적어두세요.",
+    guideIntroGlossary: "용어집에는 회사명, 직책, 자주 쓰는 업무 단어를 고정해두세요.",
+    guideIntroPreview: "방 안에서는 보내기 전 상대 화면 미리보기도 확인할 수 있어요.",
+    roomSettings: "방 설정",
+    roomName: "방 이름",
+    roomNamePlaceholder: "예: 베트남 법인 업무방",
+    roomPasswordNew: "새 비밀번호",
+    roomPasswordPlaceholder: "바꿀 때만 입력",
+    clearPassword: "비밀번호 해제",
+    inviteExpiry: "초대 링크 만료",
+    expiryNever: "만료 없음",
+    expiry1h: "1시간",
+    expiry24h: "24시간",
+    expiry7d: "7일",
+    saveRoomSettings: "방 설정 저장",
+    closeRoomSettings: "설정 접기",
+    settingsSaved: "방 설정 저장됨",
+    settingsOwnerOnly: "방을 만든 사람만 설정을 바꿀 수 있어요.",
+    passwordRequired: "비밀번호가 필요한 방이에요.",
+    passwordWrong: "비밀번호가 맞지 않아요.",
+    roomExpired: "초대 링크가 만료됐어요.",
+    peerWaiting: "상대방을 기다리는 중",
+    peerOnlineOne: "상대방 접속 중",
+    peerOnlineMany: (count) => `${count}명 접속 중`,
+    typingOne: (name) => `${name} 입력 중...`,
+    typingMany: (count) => `${count}명 입력 중...`,
+    previewTranslation: "상대 화면 미리보기",
+    previewButton: "상대 화면 미리보기",
+    previewLoading: "번역 미리보기 중...",
+    previewNoPeer: "상대방이 들어오면 미리보기를 만들 수 있어요.",
+    previewFailed: "미리보기 실패",
+    previewClear: "미리보기 닫기",
+    retranslate: "다시 번역",
+    retranslateNatural: "자연스럽게",
+    retranslatePolite: "정중하게",
+    retranslateBusiness: "회사 말투",
+    retranslateLoading: "다시 번역 중",
+    retranslateFailed: "다시 번역 실패",
     tonePresets: [
       { id: "casual", label: "일상", rule: "일상 대화처럼 자연스럽고 짧게 번역" },
       { id: "business", label: "회사", rule: "회사 업무 대화처럼 명확하고 실무적인 말투로 번역" },
@@ -105,6 +146,47 @@ const uiText = {
     languageMismatch: "Check language",
     languageMismatchDetail: (detected, selected) =>
       `This looks like ${detected}. Your language is set to ${selected}. Edit it, or send again to continue.`,
+    roomPassword: "Room password",
+    joinGlossary: "Glossary",
+    guideIntroTitle: "Tune translation to your situation",
+    guideIntroInstructions: "Use instructions for tone, pronouns, relationship, and address terms.",
+    guideIntroGlossary: "Use the glossary for company names, roles, and repeated work terms.",
+    guideIntroPreview: "Inside a room, preview how your message will look to the other side.",
+    roomSettings: "Room settings",
+    roomName: "Room name",
+    roomNamePlaceholder: "Example: Vietnam office chat",
+    roomPasswordNew: "New password",
+    roomPasswordPlaceholder: "Only when changing",
+    clearPassword: "Remove password",
+    inviteExpiry: "Invite link expiry",
+    expiryNever: "No expiry",
+    expiry1h: "1 hour",
+    expiry24h: "24 hours",
+    expiry7d: "7 days",
+    saveRoomSettings: "Save room settings",
+    closeRoomSettings: "Collapse settings",
+    settingsSaved: "Room settings saved",
+    settingsOwnerOnly: "Only the room creator can change settings.",
+    passwordRequired: "This room needs a password.",
+    passwordWrong: "The password is incorrect.",
+    roomExpired: "This invite link has expired.",
+    peerWaiting: "Waiting for the other side",
+    peerOnlineOne: "Other side online",
+    peerOnlineMany: (count) => `${count} people online`,
+    typingOne: (name) => `${name} is typing...`,
+    typingMany: (count) => `${count} people are typing...`,
+    previewTranslation: "Other side preview",
+    previewButton: "Preview other side",
+    previewLoading: "Previewing translation...",
+    previewNoPeer: "A preview is available after someone else joins.",
+    previewFailed: "Preview failed",
+    previewClear: "Close preview",
+    retranslate: "Retranslate",
+    retranslateNatural: "Natural",
+    retranslatePolite: "Polite",
+    retranslateBusiness: "Business tone",
+    retranslateLoading: "Retranslating",
+    retranslateFailed: "Retranslation failed",
     tonePresets: [
       { id: "casual", label: "Casual", rule: "Translate in a natural everyday chat tone. Keep it clear and concise." },
       { id: "business", label: "Business", rule: "Translate in a clear, professional workplace tone." },
@@ -173,6 +255,47 @@ const uiText = {
     languageMismatch: "言語を確認",
     languageMismatchDetail: (detected, selected) =>
       `入力は${detected}のように見えます。自分の言語は${selected}です。修正するか、もう一度送信するとそのまま送れます。`,
+    roomPassword: "ルームパスワード",
+    joinGlossary: "用語集",
+    guideIntroTitle: "翻訳を状況に合わせられます",
+    guideIntroInstructions: "翻訳指示には口調、呼び方、関係性を書いてください。",
+    guideIntroGlossary: "用語集には会社名、役職、よく使う業務用語を固定できます。",
+    guideIntroPreview: "ルーム内では送信前に相手側の表示を確認できます。",
+    roomSettings: "ルーム設定",
+    roomName: "ルーム名",
+    roomNamePlaceholder: "例: ベトナム法人業務ルーム",
+    roomPasswordNew: "新しいパスワード",
+    roomPasswordPlaceholder: "変更時のみ入力",
+    clearPassword: "パスワード解除",
+    inviteExpiry: "招待リンク期限",
+    expiryNever: "期限なし",
+    expiry1h: "1時間",
+    expiry24h: "24時間",
+    expiry7d: "7日",
+    saveRoomSettings: "設定を保存",
+    closeRoomSettings: "設定を閉じる",
+    settingsSaved: "ルーム設定を保存しました",
+    settingsOwnerOnly: "ルーム作成者だけが設定を変更できます。",
+    passwordRequired: "パスワードが必要なルームです。",
+    passwordWrong: "パスワードが違います。",
+    roomExpired: "招待リンクの期限が切れました。",
+    peerWaiting: "相手の参加を待っています",
+    peerOnlineOne: "相手がオンライン",
+    peerOnlineMany: (count) => `${count}人がオンライン`,
+    typingOne: (name) => `${name}が入力中...`,
+    typingMany: (count) => `${count}人が入力中...`,
+    previewTranslation: "相手側プレビュー",
+    previewButton: "相手側をプレビュー",
+    previewLoading: "翻訳をプレビュー中...",
+    previewNoPeer: "相手が入室するとプレビューできます。",
+    previewFailed: "プレビュー失敗",
+    previewClear: "プレビューを閉じる",
+    retranslate: "再翻訳",
+    retranslateNatural: "自然に",
+    retranslatePolite: "丁寧に",
+    retranslateBusiness: "仕事口調",
+    retranslateLoading: "再翻訳中",
+    retranslateFailed: "再翻訳失敗",
     tonePresets: [
       { id: "casual", label: "日常", rule: "日常会話のように自然で短めに翻訳" },
       { id: "business", label: "仕事", rule: "職場の会話のように明確で実務的な口調で翻訳" },
@@ -241,6 +364,47 @@ const uiText = {
     languageMismatch: "检查语言",
     languageMismatchDetail: (detected, selected) =>
       `输入看起来像${detected}。你的语言设置为${selected}。请修改，或再次发送以继续。`,
+    roomPassword: "房间密码",
+    joinGlossary: "术语表",
+    guideIntroTitle: "可以按你的场景调整翻译",
+    guideIntroInstructions: "在翻译指示里写语气、称呼、关系。",
+    guideIntroGlossary: "在术语表里固定公司名、职位和常用业务词。",
+    guideIntroPreview: "在房间里，发送前可以预览对方看到的译文。",
+    roomSettings: "房间设置",
+    roomName: "房间名称",
+    roomNamePlaceholder: "例：越南法人业务房",
+    roomPasswordNew: "新密码",
+    roomPasswordPlaceholder: "仅修改时填写",
+    clearPassword: "取消密码",
+    inviteExpiry: "邀请链接过期",
+    expiryNever: "不过期",
+    expiry1h: "1小时",
+    expiry24h: "24小时",
+    expiry7d: "7天",
+    saveRoomSettings: "保存房间设置",
+    closeRoomSettings: "收起设置",
+    settingsSaved: "房间设置已保存",
+    settingsOwnerOnly: "只有房间创建者可以修改设置。",
+    passwordRequired: "这个房间需要密码。",
+    passwordWrong: "密码不正确。",
+    roomExpired: "邀请链接已过期。",
+    peerWaiting: "等待对方加入",
+    peerOnlineOne: "对方在线",
+    peerOnlineMany: (count) => `${count}人在线`,
+    typingOne: (name) => `${name}正在输入...`,
+    typingMany: (count) => `${count}人正在输入...`,
+    previewTranslation: "对方视图预览",
+    previewButton: "预览对方视图",
+    previewLoading: "正在预览翻译...",
+    previewNoPeer: "对方加入后可以生成预览。",
+    previewFailed: "预览失败",
+    previewClear: "关闭预览",
+    retranslate: "重新翻译",
+    retranslateNatural: "更自然",
+    retranslatePolite: "更礼貌",
+    retranslateBusiness: "商务语气",
+    retranslateLoading: "正在重新翻译",
+    retranslateFailed: "重新翻译失败",
     tonePresets: [
       { id: "casual", label: "日常", rule: "像日常聊天一样自然、简洁地翻译" },
       { id: "business", label: "公司", rule: "用清晰、专业、适合职场的语气翻译" },
@@ -309,6 +473,47 @@ const uiText = {
     languageMismatch: "Kiểm tra ngôn ngữ",
     languageMismatchDetail: (detected, selected) =>
       `Tin nhắn trông giống ${detected}. Ngôn ngữ của bạn đang là ${selected}. Sửa lại hoặc gửi lần nữa để tiếp tục.`,
+    roomPassword: "Mật khẩu phòng",
+    joinGlossary: "Thuật ngữ",
+    guideIntroTitle: "Có thể chỉnh bản dịch theo tình huống",
+    guideIntroInstructions: "Ghi giọng điệu, cách xưng hô và quan hệ vào hướng dẫn dịch.",
+    guideIntroGlossary: "Ghi tên công ty, chức vụ và thuật ngữ công việc hay dùng vào thuật ngữ.",
+    guideIntroPreview: "Trong phòng, bạn có thể xem trước phía đối phương trước khi gửi.",
+    roomSettings: "Cài đặt phòng",
+    roomName: "Tên phòng",
+    roomNamePlaceholder: "Ví dụ: Phòng công việc pháp nhân Việt Nam",
+    roomPasswordNew: "Mật khẩu mới",
+    roomPasswordPlaceholder: "Chỉ nhập khi đổi",
+    clearPassword: "Gỡ mật khẩu",
+    inviteExpiry: "Hết hạn liên kết mời",
+    expiryNever: "Không hết hạn",
+    expiry1h: "1 giờ",
+    expiry24h: "24 giờ",
+    expiry7d: "7 ngày",
+    saveRoomSettings: "Lưu cài đặt phòng",
+    closeRoomSettings: "Thu gọn cài đặt",
+    settingsSaved: "Đã lưu cài đặt phòng",
+    settingsOwnerOnly: "Chỉ người tạo phòng có thể đổi cài đặt.",
+    passwordRequired: "Phòng này cần mật khẩu.",
+    passwordWrong: "Mật khẩu không đúng.",
+    roomExpired: "Liên kết mời đã hết hạn.",
+    peerWaiting: "Đang chờ đối phương",
+    peerOnlineOne: "Đối phương đang online",
+    peerOnlineMany: (count) => `${count} người đang online`,
+    typingOne: (name) => `${name} đang nhập...`,
+    typingMany: (count) => `${count} người đang nhập...`,
+    previewTranslation: "Xem trước phía đối phương",
+    previewButton: "Xem trước phía đối phương",
+    previewLoading: "Đang xem trước bản dịch...",
+    previewNoPeer: "Có thể xem trước sau khi có người khác vào phòng.",
+    previewFailed: "Xem trước thất bại",
+    previewClear: "Đóng xem trước",
+    retranslate: "Dịch lại",
+    retranslateNatural: "Tự nhiên",
+    retranslatePolite: "Lịch sự",
+    retranslateBusiness: "Giọng công việc",
+    retranslateLoading: "Đang dịch lại",
+    retranslateFailed: "Dịch lại thất bại",
     tonePresets: [
       { id: "casual", label: "Thường ngày", rule: "Dịch tự nhiên như trò chuyện hằng ngày, rõ và ngắn gọn." },
       { id: "business", label: "Công việc", rule: "Dịch bằng giọng điệu rõ ràng, chuyên nghiệp, phù hợp công việc." },
@@ -358,8 +563,14 @@ const els = {
   roomInput: document.querySelector("#roomInput"),
   nameInput: document.querySelector("#nameInput"),
   languageInput: document.querySelector("#languageInput"),
+  roomPasswordInput: document.querySelector("#roomPasswordInput"),
   uiLanguageInput: document.querySelector("#uiLanguageInput"),
   translationGuideInput: document.querySelector("#translationGuideInput"),
+  joinGlossaryInput: document.querySelector("#joinGlossaryInput"),
+  guideIntroTitle: document.querySelector("#guideIntroTitle"),
+  guideIntroInstructions: document.querySelector("#guideIntroInstructions"),
+  guideIntroGlossary: document.querySelector("#guideIntroGlossary"),
+  guideIntroPreview: document.querySelector("#guideIntroPreview"),
   helpStepRoom: document.querySelector("#helpStepRoom"),
   helpStepSettings: document.querySelector("#helpStepSettings"),
   helpStepChat: document.querySelector("#helpStepChat"),
@@ -367,6 +578,18 @@ const els = {
   newRoomButton: document.querySelector("#newRoomButton"),
   roomCodeDisplay: document.querySelector("#roomCodeDisplay"),
   memberCount: document.querySelector("#memberCount"),
+  presenceSummary: document.querySelector("#presenceSummary"),
+  typingIndicator: document.querySelector("#typingIndicator"),
+  roomSettingsButton: document.querySelector("#roomSettingsButton"),
+  roomSettingsPanel: document.querySelector("#roomSettingsPanel"),
+  roomSettingsTitle: document.querySelector("#roomSettingsTitle"),
+  saveRoomSettingsButton: document.querySelector("#saveRoomSettingsButton"),
+  closeRoomSettingsButton: document.querySelector("#closeRoomSettingsButton"),
+  roomTitleInput: document.querySelector("#roomTitleInput"),
+  roomSettingsPasswordInput: document.querySelector("#roomSettingsPasswordInput"),
+  inviteExpiryInput: document.querySelector("#inviteExpiryInput"),
+  clearPasswordInput: document.querySelector("#clearPasswordInput"),
+  roomSettingsFeedback: document.querySelector("#roomSettingsFeedback"),
   translationRulesButton: document.querySelector("#translationRulesButton"),
   translationRulesPanel: document.querySelector("#translationRulesPanel"),
   translationRulesTitle: document.querySelector("#translationRulesTitle"),
@@ -385,8 +608,13 @@ const els = {
   memberRow: document.querySelector("#memberRow"),
   messages: document.querySelector("#messages"),
   messageForm: document.querySelector("#messageForm"),
+  messagePreview: document.querySelector("#messagePreview"),
+  previewTitle: document.querySelector("#previewTitle"),
+  messagePreviewList: document.querySelector("#messagePreviewList"),
+  previewClearButton: document.querySelector("#previewClearButton"),
   languageHint: document.querySelector("#languageHint"),
   messageInput: document.querySelector("#messageInput"),
+  previewButton: document.querySelector("#previewButton"),
   sendButton: document.querySelector("#sendButton")
 };
 
@@ -397,18 +625,31 @@ const state = {
   room: roomFromPath() || localStorage.getItem("translator.room") || randomRoom(),
   name: localStorage.getItem("translator.name") || "",
   language: localStorage.getItem("translator.language") || "ko",
+  roomPassword: "",
   uiLanguage: normalizeUiLanguage(localStorage.getItem("translator.uiLanguage") || detectUiLanguage()),
   translationRules: initialTranslationRules,
   translationGlossary: initialTranslationGlossary,
   translationGuide: buildTranslationGuide(initialTranslationRules, initialTranslationGlossary),
-  clientId: crypto.randomUUID(),
+  clientId: getClientId(),
+  roomAccessToken: "",
+  roomSettings: {
+    title: "",
+    hasPassword: false,
+    expiresAt: 0
+  },
+  isRoomOwner: false,
   eventSource: null,
   aiEnabled: false,
   notificationSupported: false,
   notificationsEnabled: false,
   sending: false,
+  previewing: false,
+  typing: false,
+  typingTimer: 0,
   pendingMismatchText: "",
   seenMessageIds: new Set(),
+  members: [],
+  typingMembers: [],
   memberCount: 0,
   statusKey: "waiting",
   statusClass: "",
@@ -421,6 +662,7 @@ els.languageInput.value = state.language;
 els.uiLanguageInput.value = state.uiLanguage;
 els.translationGuideInput.value = displayTranslationRulesForInput(state.translationRules);
 els.glossaryInput.value = state.translationGlossary;
+els.joinGlossaryInput.value = state.translationGlossary;
 
 els.joinButton.addEventListener("click", joinRoom);
 els.newRoomButton.addEventListener("click", () => {
@@ -430,11 +672,18 @@ els.newRoomButton.addEventListener("click", () => {
 els.copyLinkButton.addEventListener("click", copyRoomLink);
 els.leaveRoomButton.addEventListener("click", leaveRoom);
 els.composerLeaveButton.addEventListener("click", leaveRoom);
+els.roomSettingsButton.addEventListener("click", toggleRoomSettingsPanel);
+els.saveRoomSettingsButton.addEventListener("click", saveRoomSettings);
+els.closeRoomSettingsButton.addEventListener("click", closeRoomSettingsPanel);
 els.translationRulesButton.addEventListener("click", toggleTranslationRulesPanel);
 els.applyRulesButton.addEventListener("click", applyTranslationRules);
 els.addRuleButton.addEventListener("click", addTranslationRuleRow);
 els.collapseRulesButton.addEventListener("click", closeTranslationRulesPanel);
 els.glossaryInput.addEventListener("input", saveTranslationGlossaryFromPanel);
+els.joinGlossaryInput.addEventListener("input", () => {
+  state.translationGlossary = normalizeGlossaryText(els.joinGlossaryInput.value);
+  saveTranslationGlossary();
+});
 els.notificationButton.addEventListener("click", toggleNotifications);
 els.uiLanguageInput.addEventListener("change", () => {
   state.uiLanguage = normalizeUiLanguage(els.uiLanguageInput.value);
@@ -442,10 +691,14 @@ els.uiLanguageInput.addEventListener("change", () => {
   applyUiLanguage();
 });
 els.messageForm.addEventListener("submit", sendMessage);
+els.previewButton.addEventListener("click", previewMessage);
+els.previewClearButton.addEventListener("click", hideMessagePreview);
 els.messageInput.addEventListener("input", () => {
   resizeComposer();
   state.pendingMismatchText = "";
   hideLanguageHint();
+  hideMessagePreview();
+  scheduleTyping();
 });
 els.messageInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.shiftKey) {
@@ -453,6 +706,25 @@ els.messageInput.addEventListener("keydown", (event) => {
     event.preventDefault();
     if (state.sending) return;
     els.messageForm.requestSubmit();
+  }
+});
+
+window.addEventListener("beforeunload", () => {
+  if (state.typing) {
+    navigator.sendBeacon?.(
+      "/api/typing",
+      new Blob(
+        [
+          JSON.stringify({
+            room: state.room,
+            clientId: state.clientId,
+            roomAccessToken: state.roomAccessToken,
+            typing: false
+          })
+        ],
+        { type: "application/json" }
+      )
+    );
   }
 });
 
@@ -467,9 +739,18 @@ async function joinRoom() {
   state.room = normalizeRoom(els.roomInput.value);
   state.name = normalizeName(els.nameInput.value);
   state.language = els.languageInput.value;
+  state.roomPassword = els.roomPasswordInput.value;
   state.translationRules = parseTranslationRules(els.translationGuideInput.value);
+  state.translationGlossary = normalizeGlossaryText(els.joinGlossaryInput.value);
   saveTranslationRules();
+  saveTranslationGlossary();
   state.roomFullLimit = null;
+
+  const joinResult = await requestRoomJoin();
+  if (!joinResult.ok) {
+    setStatusKey(joinResult.statusKey, "demo");
+    return;
+  }
 
   localStorage.setItem("translator.room", state.room);
   localStorage.setItem("translator.name", state.name);
@@ -478,26 +759,187 @@ async function joinRoom() {
   els.roomInput.value = state.room;
   els.nameInput.value = state.name;
   els.translationGuideInput.value = displayTranslationRulesForInput(state.translationRules);
-  els.roomCodeDisplay.textContent = state.room;
+  els.joinGlossaryInput.value = state.translationGlossary;
+  renderRoomHeader();
   els.messages.replaceChildren();
   state.seenMessageIds.clear();
   state.sending = false;
+  state.previewing = false;
+  state.typing = false;
   els.messageInput.disabled = false;
   els.sendButton.disabled = false;
   hideLanguageHint();
+  hideMessagePreview();
   state.memberCount = 0;
+  state.members = [];
+  state.typingMembers = [];
   updateMemberCount();
+  renderPresenceSummary();
+  renderTypingIndicator();
   els.joinPanel.hidden = true;
   els.chatPanel.hidden = false;
+  els.roomSettingsPanel.hidden = true;
   els.translationRulesPanel.hidden = true;
+  updateRoomSettingsButton();
   updateTranslationRulesButton();
   renderTranslationRulesPanel();
+  renderRoomSettingsPanel();
   history.replaceState(null, "", `/room/${encodeURIComponent(state.room)}`);
   connectEvents();
   syncPushSubscriptionIfAllowed().catch(() => {
     updateNotificationButton();
   });
   els.messageInput.focus();
+}
+
+async function requestRoomJoin() {
+  try {
+    const response = await fetch("/api/room/join", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        room: state.room,
+        clientId: state.clientId,
+        password: state.roomPassword
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.ok) {
+      return { ok: false, statusKey: statusKeyForRoomError(payload.error, response.status) };
+    }
+
+    state.room = payload.room?.code || state.room;
+    state.roomAccessToken = payload.roomAccessToken || "";
+    applyRoomSettings(payload.room, payload.isOwner);
+    return { ok: true };
+  } catch {
+    return { ok: false, statusKey: "reconnecting" };
+  }
+}
+
+function statusKeyForRoomError(error, status) {
+  if (error === "password_required" || status === 401) return "passwordRequired";
+  if (error === "password_wrong" || status === 403) return "passwordWrong";
+  if (error === "room_expired" || status === 410) return "roomExpired";
+  return "sendFailed";
+}
+
+function applyRoomSettings(settings = {}, isOwner = state.isRoomOwner) {
+  state.roomSettings = {
+    title: normalizeRoomTitle(settings.title),
+    hasPassword: Boolean(settings.hasPassword),
+    expiresAt: Number(settings.expiresAt || 0)
+  };
+  state.isRoomOwner = Boolean(isOwner);
+  renderRoomHeader();
+  renderRoomSettingsPanel();
+  updateRoomSettingsButton();
+}
+
+function renderRoomHeader() {
+  const title = normalizeRoomTitle(state.roomSettings.title);
+  els.roomCodeDisplay.textContent = title ? `${title} · ${state.room}` : state.room;
+}
+
+function toggleRoomSettingsPanel() {
+  if (els.roomSettingsPanel.hidden) {
+    openRoomSettingsPanel();
+  } else {
+    closeRoomSettingsPanel();
+  }
+}
+
+function openRoomSettingsPanel() {
+  els.roomSettingsPanel.hidden = false;
+  renderRoomSettingsPanel();
+  updateRoomSettingsButton();
+}
+
+function closeRoomSettingsPanel() {
+  els.roomSettingsPanel.hidden = true;
+  updateRoomSettingsButton();
+}
+
+function updateRoomSettingsButton() {
+  const isOpen = !els.roomSettingsPanel.hidden;
+  els.roomSettingsButton.classList.toggle("active", isOpen);
+  els.roomSettingsButton.setAttribute("aria-expanded", String(isOpen));
+}
+
+function renderRoomSettingsPanel() {
+  if (!els.roomSettingsPanel) return;
+  els.roomTitleInput.value = state.roomSettings.title || "";
+  els.roomTitleInput.placeholder = t("roomNamePlaceholder");
+  els.roomSettingsPasswordInput.value = "";
+  els.roomSettingsPasswordInput.placeholder = t("roomPasswordPlaceholder");
+  els.clearPasswordInput.checked = false;
+  els.inviteExpiryInput.value = expiryValueFromSettings(state.roomSettings.expiresAt);
+  els.roomSettingsFeedback.textContent = state.isRoomOwner
+    ? settingsSummaryText()
+    : t("settingsOwnerOnly");
+  els.roomTitleInput.disabled = !state.isRoomOwner;
+  els.roomSettingsPasswordInput.disabled = !state.isRoomOwner;
+  els.inviteExpiryInput.disabled = !state.isRoomOwner;
+  els.clearPasswordInput.disabled = !state.isRoomOwner || !state.roomSettings.hasPassword;
+  els.saveRoomSettingsButton.disabled = !state.isRoomOwner;
+}
+
+function settingsSummaryText() {
+  const parts = [];
+  if (state.roomSettings.hasPassword) parts.push(t("roomPassword"));
+  const expiryText = expiryLabelFromValue(expiryValueFromSettings(state.roomSettings.expiresAt));
+  if (expiryText !== t("expiryNever")) parts.push(expiryText);
+  return parts.join(" · ") || t("settingsSaved");
+}
+
+async function saveRoomSettings() {
+  if (!state.isRoomOwner) {
+    els.roomSettingsFeedback.textContent = t("settingsOwnerOnly");
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/room/settings", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        room: state.room,
+        clientId: state.clientId,
+        roomAccessToken: state.roomAccessToken,
+        title: els.roomTitleInput.value,
+        password: els.roomSettingsPasswordInput.value,
+        clearPassword: els.clearPasswordInput.checked,
+        expiryMinutes: Number(els.inviteExpiryInput.value || 0)
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.ok) {
+      els.roomSettingsFeedback.textContent = t(statusKeyForRoomError(payload.error, response.status));
+      return;
+    }
+
+    applyRoomSettings(payload.room, payload.isOwner);
+    els.roomSettingsFeedback.textContent = t("settingsSaved");
+    setStatusKey("settingsSaved", state.aiEnabled ? "online" : "demo");
+  } catch {
+    els.roomSettingsFeedback.textContent = t("sendFailed");
+  }
+}
+
+function expiryValueFromSettings(expiresAt) {
+  const expires = Number(expiresAt || 0);
+  if (!expires) return "0";
+  const minutes = Math.max(1, Math.round((expires - Date.now()) / 60_000));
+  if (minutes <= 75) return "60";
+  if (minutes <= 1_800) return "1440";
+  return "10080";
+}
+
+function expiryLabelFromValue(value) {
+  if (value === "60") return t("expiry1h");
+  if (value === "1440") return t("expiry24h");
+  if (value === "10080") return t("expiry7d");
+  return t("expiryNever");
 }
 
 function connectEvents() {
@@ -508,19 +950,45 @@ function connectEvents() {
     room: state.room,
     client: state.clientId,
     name: state.name,
-    language: state.language
+    language: state.language,
+    token: state.roomAccessToken
   });
   state.eventSource = new EventSource(`/events?${params}`);
 
   state.eventSource.addEventListener("connected", (event) => {
     const payload = JSON.parse(event.data);
     state.aiEnabled = payload.aiEnabled;
+    if (payload.roomSettings) applyRoomSettings(payload.roomSettings, payload.isOwner);
     setStatusKey(state.aiEnabled ? "aiConnected" : "demoMode", state.aiEnabled ? "online" : "demo");
   });
 
   state.eventSource.addEventListener("presence", (event) => {
     const payload = JSON.parse(event.data);
     renderMembers(payload.members || []);
+  });
+
+  state.eventSource.addEventListener("typing", (event) => {
+    const payload = JSON.parse(event.data);
+    renderTypingMembers(payload.typing || []);
+  });
+
+  state.eventSource.addEventListener("roomSettings", (event) => {
+    const payload = JSON.parse(event.data);
+    applyRoomSettings(payload.settings, payload.isOwner);
+  });
+
+  state.eventSource.addEventListener("roomLocked", () => {
+    state.eventSource.close();
+    state.eventSource = null;
+    leaveRoom();
+    setStatusKey("passwordRequired", "demo");
+  });
+
+  state.eventSource.addEventListener("roomExpired", () => {
+    state.eventSource.close();
+    state.eventSource = null;
+    leaveRoom();
+    setStatusKey("roomExpired", "demo");
   });
 
   state.eventSource.addEventListener("roomFull", (event) => {
@@ -546,6 +1014,7 @@ function connectEvents() {
 }
 
 function leaveRoom() {
+  sendTyping(false).catch(() => {});
   if (state.eventSource) {
     state.eventSource.close();
     state.eventSource = null;
@@ -558,12 +1027,21 @@ function leaveRoom() {
   resizeComposer();
   state.seenMessageIds.clear();
   state.sending = false;
+  state.previewing = false;
+  state.typing = false;
+  window.clearTimeout(state.typingTimer);
   state.pendingMismatchText = "";
+  state.roomAccessToken = "";
   els.messageInput.disabled = false;
   els.sendButton.disabled = false;
   els.messages.replaceChildren();
   els.memberRow.replaceChildren();
+  els.presenceSummary.textContent = "";
+  els.typingIndicator.hidden = true;
+  els.typingIndicator.textContent = "";
   state.memberCount = 0;
+  state.members = [];
+  state.typingMembers = [];
   state.roomFullLimit = null;
   updateMemberCount();
   els.chatPanel.hidden = true;
@@ -575,6 +1053,8 @@ function leaveRoom() {
   els.languageInput.value = state.language;
   els.translationGuideInput.value = displayTranslationRulesForInput(state.translationRules);
   els.glossaryInput.value = state.translationGlossary;
+  els.joinGlossaryInput.value = state.translationGlossary;
+  hideMessagePreview();
   els.roomInput.focus();
 }
 
@@ -688,6 +1168,7 @@ async function savePushSubscription(subscription) {
     body: JSON.stringify({
       room: state.room,
       clientId: state.clientId,
+      roomAccessToken: state.roomAccessToken,
       name: state.name,
       language: state.language,
       subscription: subscription.toJSON()
@@ -741,7 +1222,10 @@ function closeTranslationRulesPanel() {
 
 function updateTranslationRulesButton() {
   const isOpen = !els.translationRulesPanel.hidden;
-  els.translationRulesButton.classList.toggle("active", isOpen || state.translationRules.length > 0);
+  els.translationRulesButton.classList.toggle(
+    "active",
+    isOpen || state.translationRules.length > 0 || Boolean(state.translationGlossary)
+  );
   els.translationRulesButton.setAttribute("aria-expanded", String(isOpen));
 }
 
@@ -849,6 +1333,8 @@ function saveTranslationGlossaryFromPanel() {
   state.translationGlossary = normalizeGlossaryText(els.glossaryInput.value);
   state.translationGuide = buildTranslationGuide(state.translationRules, state.translationGlossary);
   localStorage.setItem("translator.translationGlossary", state.translationGlossary);
+  els.joinGlossaryInput.value = state.translationGlossary;
+  updateTranslationRulesButton();
   updateRulesFeedback();
 }
 
@@ -913,6 +1399,7 @@ async function sendMessage(event) {
         senderId: state.clientId,
         senderName: state.name,
         language: state.language,
+        roomAccessToken: state.roomAccessToken,
         translationGuide: state.translationGuide,
         text
       })
@@ -920,6 +1407,8 @@ async function sendMessage(event) {
     if (!response.ok) throw new Error("Message failed");
     els.messageInput.value = "";
     state.pendingMismatchText = "";
+    hideMessagePreview();
+    sendTyping(false).catch(() => {});
     resizeComposer();
   } catch {
     setStatusKey("sendFailed", "demo");
@@ -930,10 +1419,128 @@ async function sendMessage(event) {
   }
 }
 
+async function previewMessage() {
+  const text = els.messageInput.value.trim();
+  if (!text || state.previewing) return;
+
+  const detectedLanguage = detectMessageLanguage(text);
+  if (detectedLanguage && detectedLanguage !== state.language && state.pendingMismatchText !== text) {
+    state.pendingMismatchText = text;
+    showLanguageHint(detectedLanguage);
+    setStatusKey("languageMismatch", "demo");
+    return;
+  }
+
+  hideLanguageHint();
+  state.previewing = true;
+  els.previewButton.disabled = true;
+  renderMessagePreview([{ targetLanguageName: "", translatedText: t("previewLoading") }]);
+  try {
+    const response = await fetch("/api/preview", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        room: state.room,
+        senderId: state.clientId,
+        senderName: state.name,
+        language: state.language,
+        roomAccessToken: state.roomAccessToken,
+        translationGuide: state.translationGuide,
+        text
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.ok) throw new Error("Preview failed");
+    renderMessagePreview(payload.previews || []);
+  } catch {
+    renderMessagePreview([{ targetLanguageName: "", translatedText: t("previewFailed") }]);
+    setStatusKey("previewFailed", "demo");
+  } finally {
+    state.previewing = false;
+    els.previewButton.disabled = false;
+    els.messageInput.focus();
+  }
+}
+
+function renderMessagePreview(previews) {
+  els.messagePreview.hidden = false;
+  els.previewTitle.textContent = t("previewTranslation");
+  els.messagePreviewList.replaceChildren();
+
+  if (!previews.length) {
+    const item = createPreviewItem("", t("previewNoPeer"));
+    els.messagePreviewList.append(item);
+    return;
+  }
+
+  for (const preview of previews) {
+    els.messagePreviewList.append(
+      createPreviewItem(
+        preview.targetLanguageName || languages[preview.targetLanguage] || "",
+        preview.translatedText || ""
+      )
+    );
+  }
+}
+
+function createPreviewItem(labelText, translatedText) {
+  const item = document.createElement("div");
+  item.className = "preview-item";
+
+  if (labelText) {
+    const label = document.createElement("div");
+    label.className = "preview-label";
+    label.textContent = t("shownToPartner", labelText);
+    item.append(label);
+  }
+
+  const text = document.createElement("p");
+  text.className = "preview-text";
+  text.textContent = translatedText;
+  item.append(text);
+  return item;
+}
+
+function hideMessagePreview() {
+  els.messagePreview.hidden = true;
+  els.messagePreviewList.replaceChildren();
+}
+
+function scheduleTyping() {
+  if (els.chatPanel.hidden) return;
+  const hasText = Boolean(els.messageInput.value.trim());
+  sendTyping(hasText).catch(() => {});
+  window.clearTimeout(state.typingTimer);
+  if (hasText) {
+    state.typingTimer = window.setTimeout(() => {
+      sendTyping(false).catch(() => {});
+    }, 1800);
+  }
+}
+
+async function sendTyping(isTyping) {
+  if (els.chatPanel.hidden && isTyping) return;
+  if (state.typing === isTyping) return;
+  state.typing = isTyping;
+  await fetch("/api/typing", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      room: state.room,
+      clientId: state.clientId,
+      name: state.name,
+      roomAccessToken: state.roomAccessToken,
+      typing: isTyping
+    })
+  });
+}
+
 function renderMembers(members) {
+  state.members = members;
   state.memberCount = members.length;
   state.roomFullLimit = null;
   updateMemberCount();
+  renderPresenceSummary();
   els.memberRow.replaceChildren(
     ...members.map((member) => {
       const chip = document.createElement("span");
@@ -946,6 +1553,37 @@ function renderMembers(members) {
       return chip;
     })
   );
+  renderTypingIndicator();
+}
+
+function renderPresenceSummary() {
+  const peerCount = state.members.filter((member) => member.id !== state.clientId).length;
+  if (peerCount === 0) {
+    els.presenceSummary.textContent = t("peerWaiting");
+  } else if (peerCount === 1) {
+    els.presenceSummary.textContent = t("peerOnlineOne");
+  } else {
+    els.presenceSummary.textContent = t("peerOnlineMany", state.members.length);
+  }
+}
+
+function renderTypingMembers(typingMembers) {
+  state.typingMembers = typingMembers.filter((member) => member.id !== state.clientId);
+  renderTypingIndicator();
+}
+
+function renderTypingIndicator() {
+  if (!state.typingMembers.length) {
+    els.typingIndicator.hidden = true;
+    els.typingIndicator.textContent = "";
+    return;
+  }
+
+  els.typingIndicator.hidden = false;
+  els.typingIndicator.textContent =
+    state.typingMembers.length === 1
+      ? t("typingOne", state.typingMembers[0].name)
+      : t("typingMany", state.typingMembers.length);
 }
 
 function renderMessage(message) {
@@ -971,6 +1609,10 @@ function renderMessage(message) {
 
   meta.append(sender, provider);
   item.append(meta, translated);
+
+  if (message.targetLanguage && message.targetLanguage !== message.sourceLanguage) {
+    item.append(createRetranslateActions(message, message.targetLanguage, translated, provider));
+  }
 
   if (message.originalVisible) {
     const original = document.createElement("p");
@@ -998,6 +1640,9 @@ function renderMessage(message) {
         text.textContent = translation.translatedText;
 
         peerBox.append(label, text);
+        if (translation.targetLanguage && translation.targetLanguage !== message.sourceLanguage) {
+          peerBox.append(createRetranslateActions(message, translation.targetLanguage, text, label, "peer-actions"));
+        }
       }
 
       item.append(peerBox);
@@ -1006,6 +1651,76 @@ function renderMessage(message) {
 
   els.messages.append(item);
   item.scrollIntoView({ block: "end", behavior: "smooth" });
+}
+
+function createRetranslateActions(message, targetLanguage, textElement, providerElement, className = "message-actions") {
+  const actions = document.createElement("div");
+  actions.className = className;
+
+  const styles = [
+    ["natural", "retranslateNatural"],
+    ["polite", "retranslatePolite"],
+    ["business", "retranslateBusiness"]
+  ];
+
+  for (const [style, labelKey] of styles) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "action-chip";
+    button.textContent = t(labelKey);
+    button.title = `${t("retranslate")} · ${t(labelKey)}`;
+    button.addEventListener("click", () =>
+      retranslateMessage(message, targetLanguage, style, textElement, providerElement, actions)
+    );
+    actions.append(button);
+  }
+
+  return actions;
+}
+
+async function retranslateMessage(message, targetLanguage, style, textElement, providerElement, actions) {
+  const buttons = [...actions.querySelectorAll("button")];
+  buttons.forEach((button) => {
+    button.disabled = true;
+  });
+  setStatusKey("retranslateLoading", "");
+
+  try {
+    const response = await fetch("/api/retranslate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        room: state.room,
+        clientId: state.clientId,
+        messageId: message.id,
+        targetLanguage,
+        style,
+        translationGuide: state.translationGuide,
+        roomAccessToken: state.roomAccessToken
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.ok) throw new Error("Retranslate failed");
+    textElement.textContent = payload.translatedText || textElement.textContent;
+    if (providerElement) {
+      if (providerElement.classList.contains("provider")) {
+        providerElement.textContent = providerLabel(payload.translationProvider);
+        providerElement.classList.toggle("demo", payload.translationProvider === "demo");
+      } else {
+        const languageName = languages[targetLanguage] || targetLanguage;
+        providerElement.textContent = `${t("shownToPartner", languageName)} · ${providerLabel(
+          payload.translationProvider
+        )}`;
+      }
+    }
+    setStatusKey(state.aiEnabled ? "aiConnected" : "demoMode", state.aiEnabled ? "online" : "demo");
+  } catch {
+    setStatusKey("retranslateFailed", "demo");
+  } finally {
+    buttons.forEach((button) => {
+      button.disabled = false;
+    });
+  }
 }
 
 function renderSystemMessage(text) {
@@ -1040,17 +1755,32 @@ function applyUiLanguage() {
   setLabelText(els.roomInput, "roomCode");
   setLabelText(els.nameInput, "nickname");
   setLabelText(els.languageInput, "chatLanguage");
+  setLabelText(els.roomPasswordInput, "roomPassword");
   setLabelText(els.uiLanguageInput, "interfaceLanguage");
   setLabelText(els.translationGuideInput, "translationGuide");
+  setLabelText(els.joinGlossaryInput, "joinGlossary");
+  els.guideIntroTitle.textContent = t("guideIntroTitle");
+  els.guideIntroInstructions.textContent = t("guideIntroInstructions");
+  els.guideIntroGlossary.textContent = t("guideIntroGlossary");
+  els.guideIntroPreview.textContent = t("guideIntroPreview");
   els.helpStepRoom.textContent = t("helpStepRoom");
   els.helpStepSettings.textContent = t("helpStepSettings");
   els.helpStepChat.textContent = t("helpStepChat");
+  els.roomSettingsTitle.textContent = t("roomSettings");
   els.translationRulesTitle.textContent = t("translationRules");
   els.glossaryTitle.textContent = t("glossary");
+  setLabelText(els.roomTitleInput, "roomName");
+  setLabelText(els.roomSettingsPasswordInput, "roomPasswordNew");
+  setLabelText(els.inviteExpiryInput, "inviteExpiry");
+  els.clearPasswordInput.closest("label").querySelector("span").textContent = t("clearPassword");
 
   els.joinButton.textContent = t("join");
   setButtonLabel(els.newRoomButton, t("newRoom"));
   updateNotificationButton();
+  updateRoomSettingsButton();
+  setButtonLabel(els.roomSettingsButton, t("roomSettings"));
+  setButtonLabel(els.saveRoomSettingsButton, t("saveRoomSettings"));
+  setButtonLabel(els.closeRoomSettingsButton, t("closeRoomSettings"));
   updateTranslationRulesButton();
   setButtonLabel(els.translationRulesButton, t("translationRules"));
   setButtonLabel(els.applyRulesButton, t("applyRules"));
@@ -1059,10 +1789,17 @@ function applyUiLanguage() {
   setButtonLabel(els.copyLinkButton, t("copyLink"));
   setButtonLabel(els.leaveRoomButton, t("leaveRoom"));
   setButtonLabel(els.composerLeaveButton, t("leaveRoom"));
+  setButtonLabel(els.previewButton, t("previewButton"));
+  setButtonLabel(els.previewClearButton, t("previewClear"));
   setButtonLabel(els.sendButton, t("send"));
   els.messageInput.placeholder = t("messagePlaceholder");
   els.translationGuideInput.placeholder = t("translationGuidePlaceholder");
+  els.joinGlossaryInput.placeholder = t("glossaryPlaceholder");
   els.glossaryInput.placeholder = t("glossaryPlaceholder");
+  els.roomTitleInput.placeholder = t("roomNamePlaceholder");
+  els.roomSettingsPasswordInput.placeholder = t("roomPasswordPlaceholder");
+  updateExpiryOptions();
+  renderRoomSettingsPanel();
   updateRulesFeedback();
   if (!els.translationRulesPanel.hidden) {
     renderTonePresetButtons();
@@ -1073,6 +1810,8 @@ function applyUiLanguage() {
   document.querySelector(".room-label").textContent = t("room");
 
   updateMemberCount();
+  renderPresenceSummary();
+  renderTypingIndicator();
   refreshStatus();
 }
 
@@ -1085,6 +1824,18 @@ function setLabelText(input, key) {
 function setButtonLabel(button, label) {
   button.title = label;
   button.setAttribute("aria-label", label);
+}
+
+function updateExpiryOptions() {
+  const labels = {
+    0: t("expiryNever"),
+    60: t("expiry1h"),
+    1440: t("expiry24h"),
+    10080: t("expiry7d")
+  };
+  for (const option of els.inviteExpiryInput.options) {
+    option.textContent = labels[option.value] || option.textContent;
+  }
 }
 
 function updateMemberCount() {
@@ -1191,11 +1942,23 @@ function normalizeName(value) {
   return String(value || "").trim().replace(/\s+/g, " ").slice(0, 24) || "Guest";
 }
 
+function normalizeRoomTitle(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").slice(0, 40);
+}
+
 function normalizeTranslationGuide(value) {
   return parseTranslationRules(value)
     .map((rule, index) => `${index + 1}. ${rule}`)
     .join("\n")
     .slice(0, 1_500);
+}
+
+function getClientId() {
+  const stored = localStorage.getItem("translator.clientId");
+  if (stored) return stored;
+  const nextId = crypto.randomUUID();
+  localStorage.setItem("translator.clientId", nextId);
+  return nextId;
 }
 
 function normalizeRuleText(value) {
@@ -1252,6 +2015,7 @@ function saveTranslationGlossary() {
   state.translationGuide = buildTranslationGuide(state.translationRules, state.translationGlossary);
   localStorage.setItem("translator.translationGlossary", state.translationGlossary);
   els.glossaryInput.value = state.translationGlossary;
+  els.joinGlossaryInput.value = state.translationGlossary;
   updateRulesFeedback();
 }
 
