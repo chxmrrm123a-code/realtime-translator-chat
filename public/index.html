@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#2563eb" />
     <title>AI 통역 채팅</title>
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/styles.css?v=12" />
+    <link rel="stylesheet" href="/styles.css?v=13" />
   </head>
   <body>
     <div class="app-shell">
@@ -59,10 +59,26 @@
                 <option value="vi">Tiếng Việt</option>
               </select>
             </label>
+            <label>
+              <span>방 비밀번호</span>
+              <input id="roomPasswordInput" type="password" autocomplete="current-password" maxlength="40" />
+            </label>
             <label class="wide-field">
               <span>번역 지시사항</span>
               <input id="translationGuideInput" autocomplete="off" maxlength="500" placeholder="예: 나는 anh, 상대는 em / 존댓말 / 회사 업무 말투" />
             </label>
+            <label class="wide-field">
+              <span>용어집</span>
+              <textarea id="joinGlossaryInput" rows="2" maxlength="700" placeholder="예: 법인장 = General Director / 출하 = shipment"></textarea>
+            </label>
+          </div>
+          <div class="guide-intro" aria-label="번역 기능 안내">
+            <strong id="guideIntroTitle">번역을 내 상황에 맞출 수 있어요</strong>
+            <div class="guide-tip-grid">
+              <p id="guideIntroInstructions">번역 지시사항에는 말투, 호칭, 관계를 적어두세요.</p>
+              <p id="guideIntroGlossary">용어집에는 회사명, 직책, 자주 쓰는 업무 단어를 고정해두세요.</p>
+              <p id="guideIntroPreview">방 안에서는 보내기 전 상대 화면 미리보기도 확인할 수 있어요.</p>
+            </div>
           </div>
           <div class="join-help" aria-label="사용 안내">
             <div class="join-help-item">
@@ -113,6 +129,12 @@
                   <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
               </button>
+              <button class="icon-button small" id="roomSettingsButton" title="방 설정" aria-label="방 설정">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+                  <path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.04.04a2.1 2.1 0 0 1-2.97 2.97l-.04-.04a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.09 1.65V21.4a2.1 2.1 0 0 1-4.2 0v-.06a1.8 1.8 0 0 0-1.09-1.65 1.8 1.8 0 0 0-1.98.36l-.04.04a2.1 2.1 0 0 1-2.97-2.97l.04-.04A1.8 1.8 0 0 0 3.6 15a1.8 1.8 0 0 0-1.65-1.09H1.9a2.1 2.1 0 0 1 0-4.2h.06A1.8 1.8 0 0 0 3.6 8a1.8 1.8 0 0 0-.36-1.98l-.04-.04a2.1 2.1 0 0 1 2.97-2.97l.04.04A1.8 1.8 0 0 0 8.2 3.4a1.8 1.8 0 0 0 1.09-1.65V1.7a2.1 2.1 0 0 1 4.2 0v.06A1.8 1.8 0 0 0 14.6 3.4a1.8 1.8 0 0 0 1.98-.36l.04-.04a2.1 2.1 0 0 1 2.97 2.97l-.04.04A1.8 1.8 0 0 0 19.4 8a1.8 1.8 0 0 0 1.65 1.09h.06a2.1 2.1 0 0 1 0 4.2h-.06A1.8 1.8 0 0 0 19.4 15Z" />
+                </svg>
+              </button>
               <button class="icon-button small" id="copyLinkButton" title="초대 링크 복사" aria-label="초대 링크 복사">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <rect x="9" y="9" width="13" height="13" rx="2" />
@@ -129,7 +151,51 @@
             </div>
           </div>
 
+          <div class="presence-summary" id="presenceSummary"></div>
           <div class="member-row" id="memberRow"></div>
+          <div class="typing-indicator" id="typingIndicator" hidden></div>
+          <div class="settings-panel" id="roomSettingsPanel" hidden>
+            <div class="settings-panel-head">
+              <strong id="roomSettingsTitle">방 설정</strong>
+              <div class="rules-panel-actions">
+                <button class="icon-button small success" id="saveRoomSettingsButton" type="button" title="방 설정 저장" aria-label="방 설정 저장">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                </button>
+                <button class="icon-button small" id="closeRoomSettingsButton" type="button" title="설정 접기" aria-label="설정 접기">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m18 15-6-6-6 6" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="settings-grid">
+              <label>
+                <span>방 이름</span>
+                <input id="roomTitleInput" maxlength="40" placeholder="예: 베트남 법인 업무방" />
+              </label>
+              <label>
+                <span>새 비밀번호</span>
+                <input id="roomSettingsPasswordInput" type="password" autocomplete="new-password" maxlength="40" placeholder="바꿀 때만 입력" />
+              </label>
+              <label>
+                <span>초대 링크 만료</span>
+                <select id="inviteExpiryInput">
+                  <option value="0">만료 없음</option>
+                  <option value="60">1시간</option>
+                  <option value="1440">24시간</option>
+                  <option value="10080">7일</option>
+                </select>
+              </label>
+              <label class="check-field">
+                <input id="clearPasswordInput" type="checkbox" />
+                <span>비밀번호 해제</span>
+              </label>
+            </div>
+            <div class="settings-feedback" id="roomSettingsFeedback"></div>
+          </div>
+
           <div class="rules-panel" id="translationRulesPanel" hidden>
             <div class="rules-panel-head">
               <strong id="translationRulesTitle">번역 규칙</strong>
@@ -164,6 +230,18 @@
           <ol class="messages" id="messages" aria-live="polite"></ol>
 
           <form class="composer" id="messageForm">
+            <div class="message-preview" id="messagePreview" hidden>
+              <div class="message-preview-head">
+                <strong id="previewTitle">상대 화면 미리보기</strong>
+                <button class="icon-button small" id="previewClearButton" type="button" title="미리보기 닫기" aria-label="미리보기 닫기">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div class="message-preview-list" id="messagePreviewList"></div>
+            </div>
             <div class="composer-hint" id="languageHint" hidden></div>
             <button class="icon-button composer-leave-button danger" id="composerLeaveButton" type="button" title="&#48169; &#45208;&#44032;&#44592;" aria-label="&#48169; &#45208;&#44032;&#44592;">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -173,6 +251,12 @@
               </svg>
             </button>
             <textarea id="messageInput" rows="1" maxlength="2000" placeholder="메시지 입력"></textarea>
+            <button class="icon-button composer-preview-button" id="previewButton" type="button" title="상대 화면 미리보기" aria-label="상대 화면 미리보기">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
             <button class="send-button" id="sendButton" type="submit" title="전송" aria-label="전송">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="m22 2-7 20-4-9-9-4Z" />
@@ -184,6 +268,6 @@
       </main>
     </div>
 
-    <script src="/app.js?v=12" type="module"></script>
+    <script src="/app.js?v=13" type="module"></script>
   </body>
 </html>
