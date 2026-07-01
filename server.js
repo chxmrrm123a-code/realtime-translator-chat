@@ -2,14 +2,7 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  createHash,
-  createPrivateKey,
-  createSign,
-  generateKeyPairSync,
-  randomBytes,
-  timingSafeEqual
-} from "node:crypto";
+import { createPrivateKey, createSign, generateKeyPairSync, randomBytes } from "node:crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, "public");
@@ -65,11 +58,7 @@ function getRoom(roomCode) {
       lastActive: Date.now(),
       ownerId: "",
       title: "",
-      passwordSalt: "",
-      passwordHash: "",
       expiresAt: 0,
-      accessTokens: new Map(),
-      typingClients: new Map(),
       clients: new Map(),
       history: []
     });
@@ -83,11 +72,7 @@ function getRoom(roomCode) {
 function ensureRoomDefaults(room) {
   room.ownerId ||= "";
   room.title ||= "";
-  room.passwordSalt ||= "";
-  room.passwordHash ||= "";
   room.expiresAt ||= 0;
-  if (!room.accessTokens) room.accessTokens = new Map();
-  if (!room.typingClients) room.typingClients = new Map();
   return room;
 }
 
@@ -126,54 +111,10 @@ function normalizeRoomTitle(value) {
   return String(value || "").trim().replace(/\s+/g, " ").slice(0, 40);
 }
 
-function normalizePassword(value) {
-  return String(value || "").trim().slice(0, 80);
-}
-
 function parseExpiryMinutes(value) {
   const allowed = new Set([0, 60, 1440, 10080]);
   const minutes = Number(value);
   return allowed.has(minutes) ? minutes : 0;
-}
-
-function setRoomPassword(room, password) {
-  const clean = normalizePassword(password);
-  if (!clean) return;
-  room.passwordSalt = randomBytes(12).toString("hex");
-  room.passwordHash = hashRoomPassword(clean, room.passwordSalt);
-}
-
-function clearRoomPassword(room) {
-  room.passwordSalt = "";
-  room.passwordHash = "";
-}
-
-function hashRoomPassword(password, salt) {
-  return createHash("sha256").update(`${salt}:${password}`).digest("hex");
-}
-
-function verifyRoomPassword(room, password) {
-  if (!room.passwordHash) return true;
-  const clean = normalizePassword(password);
-  if (!clean || !room.passwordSalt) return false;
-  const expected = Buffer.from(room.passwordHash, "hex");
-  const actual = Buffer.from(hashRoomPassword(clean, room.passwordSalt), "hex");
-  return expected.length === actual.length && timingSafeEqual(expected, actual);
-}
-
-function createRoomAccessToken(room, clientId) {
-  const token = randomBytes(18).toString("base64url");
-  room.accessTokens.set(token, {
-    clientId,
-    createdAt: Date.now()
-  });
-  return token;
-}
-
-function hasRoomAccess(room, clientId, token) {
-  if (!room.passwordHash) return true;
-  const access = room.accessTokens.get(String(token || ""));
-  return Boolean(access && access.clientId === clientId);
 }
 
 function isRoomExpired(room) {
@@ -184,7 +125,6 @@ function serializeRoom(room) {
   return {
     code: room.code,
     title: room.title || "",
-    hasPassword: Boolean(room.passwordHash),
     expiresAt: room.expiresAt || 0
   };
 }
@@ -366,7 +306,6 @@ async function handleRoomJoin(req, res) {
   }
 
   const roomCode = normalizeRoom(payload.room);
-  const wasCreated = !rooms.has(roomCode);
   const room = getRoom(roomCode);
   const clientId = String(payload.clientId || "").slice(0, 64);
   if (!clientId) {
@@ -381,23 +320,10 @@ async function handleRoomJoin(req, res) {
 
   if (!room.ownerId) room.ownerId = clientId;
 
-  const password = normalizePassword(payload.password);
-  if (room.passwordHash && !verifyRoomPassword(room, password)) {
-    sendJson(res, password ? 403 : 401, {
-      ok: false,
-      error: password ? "password_wrong" : "password_required"
-    });
-    return;
-  }
-
-  if (wasCreated && password) setRoomPassword(room, password);
-
-  const roomAccessToken = createRoomAccessToken(room, clientId);
   sendJson(res, 200, {
     ok: true,
     room: serializeRoom(room),
-    isOwner: room.ownerId === clientId,
-    roomAccessToken
+    isOwner: room.ownerId === clientId
   });
 }
 
@@ -416,21 +342,12 @@ async function handleRoomSettings(req, res) {
     sendJson(res, 410, { ok: false, error: "room_expired" });
     return;
   }
-  if (!hasRoomAccess(room, clientId, payload.roomAccessToken)) {
-    sendJson(res, 401, { ok: false, error: "password_required" });
-    return;
-  }
   if (room.ownerId !== clientId) {
     sendJson(res, 403, { ok: false, error: "owner_only" });
     return;
   }
 
   room.title = normalizeRoomTitle(payload.title);
-  if (payload.clearPassword) {
-    clearRoomPassword(room);
-  } else if (normalizePassword(payload.password)) {
-    setRoomPassword(room, payload.password);
-  }
 
   const expiryMinutes = parseExpiryMinutes(payload.expiryMinutes);
   room.expiresAt = expiryMinutes ? Date.now() + expiryMinutes * 60_000 : 0;
@@ -455,10 +372,6 @@ async function handleTyping(req, res) {
 
   const room = getRoom(payload.room);
   const clientId = String(payload.clientId || "").slice(0, 64);
-  if (!hasRoomAccess(room, clientId, payload.roomAccessToken)) {
-    sendJson(res, 401, { ok: false, error: "password_required" });
-    return;
-  }
 
   const client = room.clients.get(clientId);
   if (client) {
@@ -484,11 +397,6 @@ async function handlePreview(req, res) {
     sendJson(res, 410, { ok: false, error: "room_expired" });
     return;
   }
-  if (!hasRoomAccess(room, senderId, payload.roomAccessToken)) {
-    sendJson(res, 401, { ok: false, error: "password_required" });
-    return;
-  }
-
   const text = String(payload.text || "").trim().slice(0, 2_000);
   if (!text) {
     sendJson(res, 422, { ok: false, error: "Message is empty." });
@@ -544,15 +452,8 @@ async function handleRetranslate(req, res) {
   }
 
   const room = getRoom(payload.room);
-  const token = String(payload.roomAccessToken || "");
-  const clientId = String(payload.clientId || "").slice(0, 64);
   if (isRoomExpired(room)) {
     sendJson(res, 410, { ok: false, error: "room_expired" });
-    return;
-  }
-
-  if (!hasRoomAccess(room, clientId, token)) {
-    sendJson(res, 401, { ok: false, error: "password_required" });
     return;
   }
 
@@ -623,10 +524,6 @@ async function handlePushSubscribe(req, res) {
 
   const room = getRoom(payload.room);
   const clientId = String(payload.clientId || "").slice(0, 64);
-  if (!hasRoomAccess(room, clientId, payload.roomAccessToken)) {
-    sendJson(res, 401, { ok: false, error: "password_required" });
-    return;
-  }
   const language = normalizeLanguage(payload.language);
 
   pushSubscriptions.set(endpoint, {
@@ -681,7 +578,6 @@ async function handleEvents(req, res, url) {
   const id = String(url.searchParams.get("client") || randomBytes(8).toString("hex")).slice(0, 64);
   const name = normalizeName(url.searchParams.get("name"));
   const language = normalizeLanguage(url.searchParams.get("language"));
-  const token = String(url.searchParams.get("token") || "");
 
   res.writeHead(200, {
     "content-type": "text/event-stream; charset=utf-8",
@@ -693,12 +589,6 @@ async function handleEvents(req, res, url) {
 
   if (isRoomExpired(room)) {
     sendSse({ res, closed: false }, "roomExpired", { room: room.code });
-    res.end();
-    return;
-  }
-
-  if (!hasRoomAccess(room, id, token)) {
-    sendSse({ res, closed: false }, "roomLocked", { room: room.code });
     res.end();
     return;
   }
@@ -793,10 +683,6 @@ async function handleMessage(req, res) {
   const senderId = String(payload.senderId || "").slice(0, 64);
   if (isRoomExpired(room)) {
     sendJson(res, 410, { ok: false, error: "room_expired" });
-    return;
-  }
-  if (!hasRoomAccess(room, senderId, payload.roomAccessToken)) {
-    sendJson(res, 401, { ok: false, error: "password_required" });
     return;
   }
 
@@ -1329,12 +1215,6 @@ setInterval(() => {
       }
       rooms.delete(code);
       continue;
-    }
-
-    for (const [token, access] of room.accessTokens) {
-      if (now - access.createdAt > 24 * 60 * 60 * 1000) {
-        room.accessTokens.delete(token);
-      }
     }
 
     if (room.clients.size === 0 && now - room.lastActive > 60 * 60 * 1000) {
