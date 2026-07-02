@@ -832,6 +832,15 @@ svg {
   box-shadow: 0 0 0 3px rgba(31, 157, 117, 0.12);
 }
 
+.message.recalled {
+  color: var(--muted);
+  background: #f8fafc;
+}
+
+.message.recalled:hover {
+  border-color: var(--line);
+}
+
 .message.mine {
   align-self: flex-end;
   border-color: rgba(37, 99, 235, 0.18);
@@ -856,6 +865,12 @@ svg {
   font-size: 1rem;
 }
 
+.recalled-text {
+  color: var(--muted);
+  font-style: italic;
+  font-weight: 760;
+}
+
 .message-original {
   margin: 8px 0 0;
   padding-top: 8px;
@@ -875,6 +890,11 @@ svg {
   border-radius: 7px;
   padding: 7px 8px;
   background: rgba(255, 255, 255, 0.7);
+}
+
+.message-reply-context.recalled {
+  border-left-color: rgba(98, 112, 132, 0.32);
+  background: rgba(248, 250, 252, 0.86);
 }
 
 .message-reply-label {
@@ -913,6 +933,37 @@ svg {
   overflow-wrap: anywhere;
   line-height: 1.42;
   font-size: 0.9rem;
+}
+
+.message-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.message-read-status {
+  white-space: nowrap;
+}
+
+.message-recall-button {
+  min-height: 28px;
+  border: 1px solid rgba(216, 92, 74, 0.22);
+  border-radius: 999px;
+  padding: 0 9px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--coral);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.message-recall-button:hover {
+  border-color: rgba(216, 92, 74, 0.42);
+  background: var(--soft-coral);
 }
 
 .provider {
