@@ -82,6 +82,7 @@ const uiText = {
     helpStepRoom: "새 방 코드를 만들거나 초대 링크로 들어오세요.",
     helpStepSettings: "내 언어와 번역 지시사항을 정한 뒤 입장하세요.",
     helpStepChat: "내가 보낸 말은 상대 언어로, 상대 말은 내 언어로 보여요.",
+    helpStepRulesIcon: "채팅방 오른쪽 조절 아이콘은 번역 규칙과 용어집을 바꾸는 버튼이에요.",
     join: "입장",
     newRoom: "새 방 코드",
     chatRoom: "채팅방",
@@ -185,6 +186,7 @@ const uiText = {
     helpStepRoom: "Create a new room code or open an invite link.",
     helpStepSettings: "Choose your language and translation instructions before joining.",
     helpStepChat: "Your messages show in their language, and theirs show in yours.",
+    helpStepRulesIcon: "The sliders icon on the right opens translation rules and glossary.",
     join: "Join",
     newRoom: "New room code",
     chatRoom: "Chat room",
@@ -288,6 +290,7 @@ const uiText = {
     helpStepRoom: "新しいルームコードを作るか、招待リンクから入ります。",
     helpStepSettings: "自分の言語と翻訳指示を設定してから入室します。",
     helpStepChat: "自分の発言は相手の言語で、相手の発言は自分の言語で表示されます。",
+    helpStepRulesIcon: "右側のスライダーアイコンで翻訳ルールと用語集を設定できます。",
     join: "入室",
     newRoom: "新しいルームコード",
     chatRoom: "チャットルーム",
@@ -391,6 +394,7 @@ const uiText = {
     helpStepRoom: "创建新房间代码，或通过邀请链接进入。",
     helpStepSettings: "先选择你的语言和翻译指示，再进入房间。",
     helpStepChat: "你发的话会显示为对方语言，对方的话会显示为你的语言。",
+    helpStepRulesIcon: "右侧的滑块图标用于设置翻译规则和术语表。",
     join: "进入",
     newRoom: "新房间代码",
     chatRoom: "聊天房间",
@@ -494,6 +498,7 @@ const uiText = {
     helpStepRoom: "Tạo mã phòng mới hoặc vào bằng liên kết mời.",
     helpStepSettings: "Chọn ngôn ngữ và hướng dẫn dịch của bạn trước khi vào.",
     helpStepChat: "Tin của bạn hiện bằng ngôn ngữ của họ, tin của họ hiện bằng ngôn ngữ của bạn.",
+    helpStepRulesIcon: "Biểu tượng thanh trượt bên phải dùng để chỉnh quy tắc dịch và thuật ngữ.",
     join: "Vào phòng",
     newRoom: "Mã phòng mới",
     chatRoom: "Phòng chat",
@@ -543,6 +548,7 @@ const els = {
   helpStepRoom: document.querySelector("#helpStepRoom"),
   helpStepSettings: document.querySelector("#helpStepSettings"),
   helpStepChat: document.querySelector("#helpStepChat"),
+  helpStepRulesIcon: document.querySelector("#helpStepRulesIcon"),
   joinButton: document.querySelector("#joinButton"),
   newRoomButton: document.querySelector("#newRoomButton"),
   roomCodeDisplay: document.querySelector("#roomCodeDisplay"),
@@ -1555,10 +1561,6 @@ function renderMessage(message) {
   meta.append(sender, provider);
   item.append(meta, translated);
 
-  if (message.targetLanguage && message.targetLanguage !== message.sourceLanguage) {
-    item.append(createRetranslateActions(message, message.targetLanguage, translated, provider));
-  }
-
   if (message.originalVisible) {
     const original = document.createElement("p");
     original.className = "message-original";
@@ -1585,9 +1587,6 @@ function renderMessage(message) {
         text.textContent = translation.translatedText;
 
         peerBox.append(label, text);
-        if (translation.targetLanguage && translation.targetLanguage !== message.sourceLanguage) {
-          peerBox.append(createRetranslateActions(message, translation.targetLanguage, text, label, "peer-actions"));
-        }
       }
 
       item.append(peerBox);
@@ -1596,76 +1595,6 @@ function renderMessage(message) {
 
   els.messages.append(item);
   item.scrollIntoView({ block: "end", behavior: "smooth" });
-}
-
-function createRetranslateActions(message, targetLanguage, textElement, providerElement, className = "message-actions") {
-  const actions = document.createElement("div");
-  actions.className = className;
-
-  const styles = [
-    ["natural", "retranslateNatural"],
-    ["polite", "retranslatePolite"],
-    ["business", "retranslateBusiness"]
-  ];
-
-  for (const [style, labelKey] of styles) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "action-chip";
-    button.textContent = t(labelKey);
-    button.title = `${t("retranslate")} · ${t(labelKey)}`;
-    button.addEventListener("click", () =>
-      retranslateMessage(message, targetLanguage, style, textElement, providerElement, actions)
-    );
-    actions.append(button);
-  }
-
-  return actions;
-}
-
-async function retranslateMessage(message, targetLanguage, style, textElement, providerElement, actions) {
-  const buttons = [...actions.querySelectorAll("button")];
-  buttons.forEach((button) => {
-    button.disabled = true;
-  });
-  setStatusKey("retranslateLoading", "");
-
-  try {
-    const response = await fetch("/api/retranslate", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        room: state.room,
-        clientId: state.clientId,
-        messageId: message.id,
-        targetLanguage,
-        style,
-        translationGuide: state.translationGuide,
-        roomAccessToken: state.roomAccessToken
-      })
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok || !payload.ok) throw new Error("Retranslate failed");
-    textElement.textContent = payload.translatedText || textElement.textContent;
-    if (providerElement) {
-      if (providerElement.classList.contains("provider")) {
-        providerElement.textContent = providerLabel(payload.translationProvider);
-        providerElement.classList.toggle("demo", payload.translationProvider === "demo");
-      } else {
-        const languageName = languages[targetLanguage] || targetLanguage;
-        providerElement.textContent = `${t("shownToPartner", languageName)} · ${providerLabel(
-          payload.translationProvider
-        )}`;
-      }
-    }
-    setStatusKey(state.aiEnabled ? "aiConnected" : "demoMode", state.aiEnabled ? "online" : "demo");
-  } catch {
-    setStatusKey("retranslateFailed", "demo");
-  } finally {
-    buttons.forEach((button) => {
-      button.disabled = false;
-    });
-  }
 }
 
 function renderSystemMessage(text) {
@@ -1710,6 +1639,7 @@ function applyUiLanguage() {
   els.helpStepRoom.textContent = t("helpStepRoom");
   els.helpStepSettings.textContent = t("helpStepSettings");
   els.helpStepChat.textContent = t("helpStepChat");
+  els.helpStepRulesIcon.textContent = t("helpStepRulesIcon");
   els.roomSettingsTitle.textContent = t("roomSettings");
   els.translationRulesTitle.textContent = t("translationRules");
   els.glossaryTitle.textContent = t("glossary");
