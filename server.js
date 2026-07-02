@@ -129,6 +129,42 @@ function serializeRoom(room) {
   };
 }
 
+function createReplyReference(room, replyToId) {
+  const id = String(replyToId || "").slice(0, 64);
+  if (!id) return null;
+  const message = room.history.find((item) => item.id === id);
+  if (!message) return null;
+  return {
+    id: message.id,
+    senderName: message.senderName,
+    sourceLanguage: message.sourceLanguage,
+    sourceLanguageName: localNames[message.sourceLanguage],
+    text: summarizeInlineText(message.text, 280),
+    createdAt: message.createdAt
+  };
+}
+
+async function getReplyReferenceForClient(room, replyTo, targetLanguage) {
+  if (!replyTo?.id) return null;
+  const sourceMessage = room.history.find((message) => message.id === replyTo.id) || replyTo;
+  const translateFor = createTranslatorForMessage(sourceMessage, []);
+  const translation = await translateFor(targetLanguage);
+  return {
+    ...replyTo,
+    targetLanguage,
+    targetLanguageName: localNames[targetLanguage],
+    translatedText: summarizeInlineText(translation.text, 140),
+    translationProvider: translation.provider,
+    translationError: translation.error || null
+  };
+}
+
+function summarizeInlineText(value, limit = 140) {
+  const clean = String(value || "").trim().replace(/\s+/g, " ");
+  if (clean.length <= limit) return clean;
+  return `${clean.slice(0, Math.max(0, limit - 3))}...`;
+}
+
 function sendJson(res, statusCode, payload) {
   const body = JSON.stringify(payload);
   res.writeHead(statusCode, {
@@ -655,10 +691,12 @@ async function deliverHistoryToClient(room, client) {
       messageIndex > 0 ? room.history.slice(Math.max(0, messageIndex - 10), messageIndex) : [];
     const translateFor = createTranslatorForMessage(message, context);
     const translation = await translateFor(client.language);
+    const replyTo = await getReplyReferenceForClient(room, message.replyTo, client.language);
     const peerTranslations = await getPeerTranslationsForClient(clients, client, message, translateFor);
 
     sendSse(client, "message", {
       ...message,
+      replyTo,
       targetLanguage: client.language,
       targetLanguageName: localNames[client.language],
       translatedText: translation.text,
@@ -694,6 +732,7 @@ async function handleMessage(req, res) {
 
   const sourceLanguage = normalizeLanguage(payload.language);
   const translationGuide = normalizeTranslationGuide(payload.translationGuide);
+  const replyTo = createReplyReference(room, payload.replyToId);
   const message = {
     id: randomBytes(10).toString("hex"),
     room: room.code,
@@ -702,6 +741,7 @@ async function handleMessage(req, res) {
     sourceLanguage,
     sourceLanguageName: localNames[sourceLanguage],
     text,
+    replyTo,
     createdAt: new Date().toISOString()
   };
   Object.defineProperty(message, "translationGuide", {
@@ -727,10 +767,12 @@ async function deliverMessage(room, message, context) {
   await Promise.all(
     clients.map(async (client) => {
       const translation = await translateFor(client.language);
+      const replyTo = await getReplyReferenceForClient(room, message.replyTo, client.language);
       const peerTranslations = await getPeerTranslationsForClient(clients, client, message, translateFor);
 
       sendSse(client, "message", {
         ...message,
+        replyTo,
         targetLanguage: client.language,
         targetLanguageName: localNames[client.language],
         translatedText: translation.text,
