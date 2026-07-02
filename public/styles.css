@@ -255,6 +255,11 @@ textarea:disabled {
   align-items: start;
 }
 
+.join-help-item.with-mark {
+  grid-template-columns: 22px 24px 1fr;
+  align-items: center;
+}
+
 .join-help-number {
   display: inline-grid;
   place-items: center;
@@ -265,6 +270,27 @@ textarea:disabled {
   color: var(--blue);
   font-size: 0.75rem;
   font-weight: 900;
+}
+
+.join-help-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--ink);
+}
+
+.join-help-mark svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .join-actions {
@@ -668,35 +694,6 @@ svg {
   overflow-wrap: anywhere;
   line-height: 1.42;
   font-size: 0.9rem;
-}
-
-.message-actions,
-.peer-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.action-chip {
-  min-height: 30px;
-  border: 1px solid rgba(98, 112, 132, 0.22);
-  border-radius: 999px;
-  padding: 0 10px;
-  background: rgba(255, 255, 255, 0.78);
-  color: var(--muted);
-  font-size: 0.76rem;
-  font-weight: 850;
-}
-
-.action-chip:hover {
-  border-color: rgba(37, 99, 235, 0.3);
-  color: var(--blue);
-}
-
-.action-chip:disabled {
-  cursor: wait;
-  opacity: 0.58;
 }
 
 .provider {
