@@ -44,6 +44,24 @@ const uiText = {
     guideIntroPreview: "방 안에서는 보내기 전 상대 화면 미리보기도 확인할 수 있어요.",
     translationOptions: "번역 옵션",
     translationOptionsActive: "번역 옵션 적용 중",
+    sentenceTranslator: "문장 번역기",
+    sentenceTranslatorHint: "원하는 언어로 한 문장만 빠르게 번역",
+    sentenceTranslatorSubtitle: "원하는 언어 하나를 골라 빠르게 번역해요.",
+    sentenceSourceLanguage: "원문 언어",
+    sentenceTargetLanguage: "번역할 언어",
+    sentenceAutoDetect: "자동 감지",
+    sentenceText: "문장",
+    sentenceTextPlaceholder: "번역할 문장을 입력하세요.",
+    sentenceGuide: "번역 규칙",
+    sentenceGuidePlaceholder: "예: 자연스럽게 / 회사 말투 / 나는 anh, 상대는 em",
+    translateSentence: "번역하기",
+    sentenceResult: "번역 결과",
+    sentenceCopy: "결과 복사",
+    sentenceTranslating: "번역 중...",
+    sentenceEmpty: "번역할 문장을 입력하세요.",
+    sentenceTranslateFailed: "문장 번역 실패",
+    sentenceCopied: "번역 결과 복사됨",
+    close: "닫기",
     roomSettings: "방 설정",
     roomName: "방 이름",
     roomNamePlaceholder: "예: 베트남 법인 업무방",
@@ -153,6 +171,24 @@ const uiText = {
     guideIntroPreview: "Inside a room, preview how your message will look to the other side.",
     translationOptions: "Translation options",
     translationOptionsActive: "Translation options active",
+    sentenceTranslator: "Sentence translator",
+    sentenceTranslatorHint: "Quickly translate one sentence into the language you choose",
+    sentenceTranslatorSubtitle: "Choose one target language and translate quickly.",
+    sentenceSourceLanguage: "Source language",
+    sentenceTargetLanguage: "Target language",
+    sentenceAutoDetect: "Auto detect",
+    sentenceText: "Sentence",
+    sentenceTextPlaceholder: "Type the sentence to translate.",
+    sentenceGuide: "Translation rules",
+    sentenceGuidePlaceholder: "Example: natural / business tone / use anh for me and em for them",
+    translateSentence: "Translate",
+    sentenceResult: "Translation result",
+    sentenceCopy: "Copy result",
+    sentenceTranslating: "Translating...",
+    sentenceEmpty: "Type a sentence to translate.",
+    sentenceTranslateFailed: "Sentence translation failed",
+    sentenceCopied: "Translation copied",
+    close: "Close",
     roomSettings: "Room settings",
     roomName: "Room name",
     roomNamePlaceholder: "Example: Vietnam office chat",
@@ -262,6 +298,24 @@ const uiText = {
     guideIntroPreview: "ルーム内では送信前に相手側の表示を確認できます。",
     translationOptions: "翻訳オプション",
     translationOptionsActive: "翻訳オプション適用中",
+    sentenceTranslator: "文章翻訳",
+    sentenceTranslatorHint: "選んだ言語へ一文だけすばやく翻訳",
+    sentenceTranslatorSubtitle: "翻訳先を1つ選んで、すばやく翻訳できます。",
+    sentenceSourceLanguage: "元の言語",
+    sentenceTargetLanguage: "翻訳先の言語",
+    sentenceAutoDetect: "自動検出",
+    sentenceText: "文章",
+    sentenceTextPlaceholder: "翻訳する文章を入力してください。",
+    sentenceGuide: "翻訳ルール",
+    sentenceGuidePlaceholder: "例: 自然に / 仕事口調 / 私は anh、相手は em",
+    translateSentence: "翻訳する",
+    sentenceResult: "翻訳結果",
+    sentenceCopy: "結果をコピー",
+    sentenceTranslating: "翻訳中...",
+    sentenceEmpty: "翻訳する文章を入力してください。",
+    sentenceTranslateFailed: "文章翻訳に失敗しました",
+    sentenceCopied: "翻訳結果をコピーしました",
+    close: "閉じる",
     roomSettings: "ルーム設定",
     roomName: "ルーム名",
     roomNamePlaceholder: "例: ベトナム法人業務ルーム",
@@ -371,6 +425,24 @@ const uiText = {
     guideIntroPreview: "在房间里，发送前可以预览对方看到的译文。",
     translationOptions: "翻译选项",
     translationOptionsActive: "翻译选项已启用",
+    sentenceTranslator: "句子翻译器",
+    sentenceTranslatorHint: "快速翻译一句话到你选择的语言",
+    sentenceTranslatorSubtitle: "选择一个目标语言，快速翻译。",
+    sentenceSourceLanguage: "原文语言",
+    sentenceTargetLanguage: "目标语言",
+    sentenceAutoDetect: "自动检测",
+    sentenceText: "句子",
+    sentenceTextPlaceholder: "请输入要翻译的句子。",
+    sentenceGuide: "翻译规则",
+    sentenceGuidePlaceholder: "例：自然一点 / 商务语气 / 我用 anh，对方用 em",
+    translateSentence: "翻译",
+    sentenceResult: "翻译结果",
+    sentenceCopy: "复制结果",
+    sentenceTranslating: "正在翻译...",
+    sentenceEmpty: "请输入要翻译的句子。",
+    sentenceTranslateFailed: "句子翻译失败",
+    sentenceCopied: "翻译结果已复制",
+    close: "关闭",
     roomSettings: "房间设置",
     roomName: "房间名称",
     roomNamePlaceholder: "例：越南法人业务房",
@@ -480,6 +552,24 @@ const uiText = {
     guideIntroPreview: "Trong phòng, bạn có thể xem trước phía đối phương trước khi gửi.",
     translationOptions: "Tùy chọn dịch",
     translationOptionsActive: "Tùy chọn dịch đang bật",
+    sentenceTranslator: "Dịch câu",
+    sentenceTranslatorHint: "Dịch nhanh một câu sang ngôn ngữ bạn chọn",
+    sentenceTranslatorSubtitle: "Chọn một ngôn ngữ đích để dịch nhanh.",
+    sentenceSourceLanguage: "Ngôn ngữ gốc",
+    sentenceTargetLanguage: "Ngôn ngữ đích",
+    sentenceAutoDetect: "Tự động nhận diện",
+    sentenceText: "Câu",
+    sentenceTextPlaceholder: "Nhập câu cần dịch.",
+    sentenceGuide: "Quy tắc dịch",
+    sentenceGuidePlaceholder: "Ví dụ: tự nhiên / giọng công việc / tôi là anh, đối phương là em",
+    translateSentence: "Dịch",
+    sentenceResult: "Kết quả dịch",
+    sentenceCopy: "Sao chép kết quả",
+    sentenceTranslating: "Đang dịch...",
+    sentenceEmpty: "Nhập câu cần dịch.",
+    sentenceTranslateFailed: "Dịch câu thất bại",
+    sentenceCopied: "Đã sao chép bản dịch",
+    close: "Đóng",
     roomSettings: "Cài đặt phòng",
     roomName: "Tên phòng",
     roomNamePlaceholder: "Ví dụ: Phòng công việc pháp nhân Việt Nam",
@@ -567,6 +657,27 @@ const els = {
   joinOptionsButton: document.querySelector("#joinOptionsButton"),
   joinOptionsButtonText: document.querySelector("#joinOptionsButtonText"),
   joinTranslationOptions: document.querySelector("#joinTranslationOptions"),
+  sentenceTranslatorButton: document.querySelector("#sentenceTranslatorButton"),
+  sentenceTranslatorButtonText: document.querySelector("#sentenceTranslatorButtonText"),
+  sentenceTranslatorButtonHint: document.querySelector("#sentenceTranslatorButtonHint"),
+  sentenceTranslatorModal: document.querySelector("#sentenceTranslatorModal"),
+  sentenceTranslatorTitle: document.querySelector("#sentenceTranslatorTitle"),
+  sentenceTranslatorSubtitle: document.querySelector("#sentenceTranslatorSubtitle"),
+  sentenceTranslatorCloseButton: document.querySelector("#sentenceTranslatorCloseButton"),
+  sentenceTranslatorForm: document.querySelector("#sentenceTranslatorForm"),
+  sentenceSourceLanguage: document.querySelector("#sentenceSourceLanguage"),
+  sentenceTargetLanguage: document.querySelector("#sentenceTargetLanguage"),
+  sentenceSourceLabel: document.querySelector("#sentenceSourceLabel"),
+  sentenceTargetLabel: document.querySelector("#sentenceTargetLabel"),
+  sentenceTextLabel: document.querySelector("#sentenceTextLabel"),
+  sentenceTextInput: document.querySelector("#sentenceTextInput"),
+  sentenceGuideLabel: document.querySelector("#sentenceGuideLabel"),
+  sentenceGuideInput: document.querySelector("#sentenceGuideInput"),
+  sentenceTranslateButton: document.querySelector("#sentenceTranslateButton"),
+  sentenceResult: document.querySelector("#sentenceResult"),
+  sentenceResultMeta: document.querySelector("#sentenceResultMeta"),
+  sentenceResultText: document.querySelector("#sentenceResultText"),
+  sentenceCopyButton: document.querySelector("#sentenceCopyButton"),
   translationGuideInput: document.querySelector("#translationGuideInput"),
   joinGlossaryInput: document.querySelector("#joinGlossaryInput"),
   guideIntroTitle: document.querySelector("#guideIntroTitle"),
@@ -643,6 +754,7 @@ const state = {
   isRoomOwner: false,
   eventSource: null,
   aiEnabled: false,
+  sentenceTranslating: false,
   notificationSupported: false,
   notificationsEnabled: false,
   sending: false,
@@ -670,6 +782,13 @@ els.joinGlossaryInput.value = state.translationGlossary;
 
 els.joinButton.addEventListener("click", joinRoom);
 els.joinOptionsButton.addEventListener("click", toggleJoinTranslationOptions);
+els.sentenceTranslatorButton.addEventListener("click", openSentenceTranslator);
+els.sentenceTranslatorCloseButton.addEventListener("click", closeSentenceTranslator);
+els.sentenceTranslatorModal.addEventListener("click", (event) => {
+  if (event.target === els.sentenceTranslatorModal) closeSentenceTranslator();
+});
+els.sentenceTranslatorForm.addEventListener("submit", translateSentence);
+els.sentenceCopyButton.addEventListener("click", copySentenceResult);
 els.newRoomButton.addEventListener("click", () => {
   els.roomInput.value = randomRoom();
   els.roomInput.focus();
@@ -733,6 +852,12 @@ window.addEventListener("beforeunload", () => {
         { type: "application/json" }
       )
     );
+  }
+});
+
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !els.sentenceTranslatorModal.hidden) {
+    closeSentenceTranslator();
   }
 });
 
@@ -822,6 +947,104 @@ function syncJoinTranslationRules() {
   updateJoinOptionsButton();
   updateTranslationRulesButton();
   updateRulesFeedback();
+}
+
+function openSentenceTranslator() {
+  els.sentenceTranslatorModal.hidden = false;
+  els.sentenceSourceLanguage.value = "auto";
+  els.sentenceTargetLanguage.value = defaultSentenceTargetLanguage();
+  els.sentenceGuideInput.value ||= displayTranslationRulesForInput(state.translationRules);
+  setSentenceResult(null);
+  window.setTimeout(() => els.sentenceTextInput.focus(), 0);
+}
+
+function closeSentenceTranslator() {
+  els.sentenceTranslatorModal.hidden = true;
+}
+
+function defaultSentenceTargetLanguage() {
+  const currentLanguage = els.languageInput.value || state.language;
+  if (currentLanguage === "vi") return "ko";
+  return "vi";
+}
+
+async function translateSentence(event) {
+  event.preventDefault();
+  if (state.sentenceTranslating) return;
+
+  const text = els.sentenceTextInput.value.trim();
+  if (!text) {
+    setSentenceResult({ error: t("sentenceEmpty") });
+    return;
+  }
+
+  const sourceLanguage =
+    els.sentenceSourceLanguage.value === "auto"
+      ? detectMessageLanguage(text) || state.language || "ko"
+      : els.sentenceSourceLanguage.value;
+  const targetLanguage = els.sentenceTargetLanguage.value;
+
+  state.sentenceTranslating = true;
+  els.sentenceTranslateButton.disabled = true;
+  els.sentenceTranslateButton.textContent = t("sentenceTranslating");
+  setSentenceResult({
+    meta: `${languages[sourceLanguage]} -> ${languages[targetLanguage]}`,
+    text: t("sentenceTranslating")
+  });
+
+  try {
+    const response = await fetch("/api/sentence-translate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        text,
+        sourceLanguage,
+        targetLanguage,
+        translationGuide: els.sentenceGuideInput.value
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.ok) throw new Error("Sentence translation failed");
+    setSentenceResult({
+      meta: `${languages[payload.sourceLanguage] || languages[sourceLanguage]} -> ${
+        languages[payload.targetLanguage] || languages[targetLanguage]
+      } · ${providerLabel(payload.translationProvider)}`,
+      text: payload.translatedText || ""
+    });
+  } catch {
+    setSentenceResult({ error: t("sentenceTranslateFailed") });
+    setStatusKey("sentenceTranslateFailed", "demo");
+  } finally {
+    state.sentenceTranslating = false;
+    els.sentenceTranslateButton.disabled = false;
+    els.sentenceTranslateButton.textContent = t("translateSentence");
+  }
+}
+
+function setSentenceResult(result) {
+  if (!result) {
+    els.sentenceResult.hidden = true;
+    els.sentenceResult.classList.remove("error");
+    els.sentenceResultMeta.textContent = t("sentenceResult");
+    els.sentenceResultText.textContent = "";
+    return;
+  }
+
+  els.sentenceResult.hidden = false;
+  els.sentenceResult.classList.toggle("error", Boolean(result.error));
+  els.sentenceResultMeta.textContent = result.error ? t("sentenceTranslateFailed") : result.meta || t("sentenceResult");
+  els.sentenceResultText.textContent = result.error || result.text || "";
+}
+
+async function copySentenceResult() {
+  const text = els.sentenceResultText.textContent.trim();
+  if (!text || els.sentenceResult.classList.contains("error")) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatusKey("sentenceCopied", state.aiEnabled ? "online" : "demo");
+  } catch {
+    setStatusKey("copyFailed", "demo");
+  }
 }
 
 async function requestRoomJoin() {
@@ -1818,6 +2041,23 @@ function applyUiLanguage() {
   setButtonLabel(els.sendButton, t("send"));
   setButtonLabel(els.joinOptionsButton, t("translationOptions"));
   updateJoinOptionsButton();
+  els.sentenceTranslatorButtonText.textContent = t("sentenceTranslator");
+  els.sentenceTranslatorButtonHint.textContent = t("sentenceTranslatorHint");
+  els.sentenceTranslatorTitle.textContent = t("sentenceTranslator");
+  els.sentenceTranslatorSubtitle.textContent = t("sentenceTranslatorSubtitle");
+  els.sentenceSourceLabel.textContent = t("sentenceSourceLanguage");
+  els.sentenceTargetLabel.textContent = t("sentenceTargetLanguage");
+  els.sentenceTextLabel.textContent = t("sentenceText");
+  els.sentenceGuideLabel.textContent = t("sentenceGuide");
+  els.sentenceTextInput.placeholder = t("sentenceTextPlaceholder");
+  els.sentenceGuideInput.placeholder = t("sentenceGuidePlaceholder");
+  els.sentenceTranslateButton.textContent = state.sentenceTranslating
+    ? t("sentenceTranslating")
+    : t("translateSentence");
+  setButtonLabel(els.sentenceTranslatorButton, t("sentenceTranslator"));
+  setButtonLabel(els.sentenceTranslatorCloseButton, t("close"));
+  setButtonLabel(els.sentenceCopyButton, t("sentenceCopy"));
+  updateSentenceLanguageOptions();
   els.messageInput.placeholder = t("messagePlaceholder");
   els.translationGuideInput.placeholder = t("translationGuidePlaceholder");
   els.joinGlossaryInput.placeholder = t("glossaryPlaceholder");
@@ -1839,6 +2079,22 @@ function applyUiLanguage() {
   renderTypingIndicator();
   renderReplyPreview();
   refreshStatus();
+}
+
+function updateSentenceLanguageOptions() {
+  const languageNames = {
+    ko: "한국어",
+    en: "English",
+    ja: "日本語",
+    zh: "中文",
+    vi: "Tiếng Việt"
+  };
+  for (const option of els.sentenceSourceLanguage.options) {
+    option.textContent = option.value === "auto" ? t("sentenceAutoDetect") : languageNames[option.value];
+  }
+  for (const option of els.sentenceTargetLanguage.options) {
+    option.textContent = languageNames[option.value] || option.textContent;
+  }
 }
 
 function setLabelText(input, key) {
