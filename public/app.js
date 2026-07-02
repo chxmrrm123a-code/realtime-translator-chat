@@ -42,6 +42,8 @@ const uiText = {
     guideIntroInstructions: "번역 지시사항에는 말투, 호칭, 관계를 적어두세요.",
     guideIntroGlossary: "용어집에는 회사명, 직책, 자주 쓰는 업무 단어를 고정해두세요.",
     guideIntroPreview: "방 안에서는 보내기 전 상대 화면 미리보기도 확인할 수 있어요.",
+    translationOptions: "번역 옵션",
+    translationOptionsActive: "번역 옵션 적용 중",
     roomSettings: "방 설정",
     roomName: "방 이름",
     roomNamePlaceholder: "예: 베트남 법인 업무방",
@@ -80,9 +82,12 @@ const uiText = {
       { id: "close", label: "연인", rule: "가까운 사이에 어울리게 다정하고 자연스러운 말투로 번역" }
     ],
     helpStepRoom: "새 방 코드를 만들거나 초대 링크로 들어오세요.",
-    helpStepSettings: "내 언어와 번역 지시사항을 정한 뒤 입장하세요.",
+    helpStepSettings: "내 언어를 정한 뒤 입장하세요.",
     helpStepChat: "내가 보낸 말은 상대 언어로, 상대 말은 내 언어로 보여요.",
     helpStepRulesIcon: "채팅방 오른쪽 조절 아이콘은 번역 규칙과 용어집을 바꾸는 버튼이에요.",
+    replyToMessage: "이 문장에 답장",
+    replyingTo: (name) => `${name}에게 답장`,
+    cancelReply: "답장 취소",
     join: "입장",
     newRoom: "새 방 코드",
     chatRoom: "채팅방",
@@ -146,6 +151,8 @@ const uiText = {
     guideIntroInstructions: "Use instructions for tone, pronouns, relationship, and address terms.",
     guideIntroGlossary: "Use the glossary for company names, roles, and repeated work terms.",
     guideIntroPreview: "Inside a room, preview how your message will look to the other side.",
+    translationOptions: "Translation options",
+    translationOptionsActive: "Translation options active",
     roomSettings: "Room settings",
     roomName: "Room name",
     roomNamePlaceholder: "Example: Vietnam office chat",
@@ -184,9 +191,12 @@ const uiText = {
       { id: "close", label: "Close", rule: "Translate in an affectionate tone suitable for a close partner, naturally and not exaggerated." }
     ],
     helpStepRoom: "Create a new room code or open an invite link.",
-    helpStepSettings: "Choose your language and translation instructions before joining.",
+    helpStepSettings: "Choose your language before joining.",
     helpStepChat: "Your messages show in their language, and theirs show in yours.",
     helpStepRulesIcon: "The sliders icon on the right opens translation rules and glossary.",
+    replyToMessage: "Reply to this message",
+    replyingTo: (name) => `Replying to ${name}`,
+    cancelReply: "Cancel reply",
     join: "Join",
     newRoom: "New room code",
     chatRoom: "Chat room",
@@ -250,6 +260,8 @@ const uiText = {
     guideIntroInstructions: "翻訳指示には口調、呼び方、関係性を書いてください。",
     guideIntroGlossary: "用語集には会社名、役職、よく使う業務用語を固定できます。",
     guideIntroPreview: "ルーム内では送信前に相手側の表示を確認できます。",
+    translationOptions: "翻訳オプション",
+    translationOptionsActive: "翻訳オプション適用中",
     roomSettings: "ルーム設定",
     roomName: "ルーム名",
     roomNamePlaceholder: "例: ベトナム法人業務ルーム",
@@ -288,9 +300,12 @@ const uiText = {
       { id: "close", label: "親密", rule: "近い関係に合うように優しく自然な口調で翻訳" }
     ],
     helpStepRoom: "新しいルームコードを作るか、招待リンクから入ります。",
-    helpStepSettings: "自分の言語と翻訳指示を設定してから入室します。",
+    helpStepSettings: "自分の言語を選んでから入室します。",
     helpStepChat: "自分の発言は相手の言語で、相手の発言は自分の言語で表示されます。",
     helpStepRulesIcon: "右側のスライダーアイコンで翻訳ルールと用語集を設定できます。",
+    replyToMessage: "この文に返信",
+    replyingTo: (name) => `${name}に返信`,
+    cancelReply: "返信を取消",
     join: "入室",
     newRoom: "新しいルームコード",
     chatRoom: "チャットルーム",
@@ -354,6 +369,8 @@ const uiText = {
     guideIntroInstructions: "在翻译指示里写语气、称呼、关系。",
     guideIntroGlossary: "在术语表里固定公司名、职位和常用业务词。",
     guideIntroPreview: "在房间里，发送前可以预览对方看到的译文。",
+    translationOptions: "翻译选项",
+    translationOptionsActive: "翻译选项已启用",
     roomSettings: "房间设置",
     roomName: "房间名称",
     roomNamePlaceholder: "例：越南法人业务房",
@@ -392,9 +409,12 @@ const uiText = {
       { id: "close", label: "亲密", rule: "用适合亲近关系的自然、温柔语气翻译，不要夸张" }
     ],
     helpStepRoom: "创建新房间代码，或通过邀请链接进入。",
-    helpStepSettings: "先选择你的语言和翻译指示，再进入房间。",
+    helpStepSettings: "先选择你的语言，再进入房间。",
     helpStepChat: "你发的话会显示为对方语言，对方的话会显示为你的语言。",
     helpStepRulesIcon: "右侧的滑块图标用于设置翻译规则和术语表。",
+    replyToMessage: "回复这句话",
+    replyingTo: (name) => `回复 ${name}`,
+    cancelReply: "取消回复",
     join: "进入",
     newRoom: "新房间代码",
     chatRoom: "聊天房间",
@@ -458,6 +478,8 @@ const uiText = {
     guideIntroInstructions: "Ghi giọng điệu, cách xưng hô và quan hệ vào hướng dẫn dịch.",
     guideIntroGlossary: "Ghi tên công ty, chức vụ và thuật ngữ công việc hay dùng vào thuật ngữ.",
     guideIntroPreview: "Trong phòng, bạn có thể xem trước phía đối phương trước khi gửi.",
+    translationOptions: "Tùy chọn dịch",
+    translationOptionsActive: "Tùy chọn dịch đang bật",
     roomSettings: "Cài đặt phòng",
     roomName: "Tên phòng",
     roomNamePlaceholder: "Ví dụ: Phòng công việc pháp nhân Việt Nam",
@@ -496,9 +518,12 @@ const uiText = {
       { id: "close", label: "Thân mật", rule: "Dịch bằng giọng tự nhiên, dịu dàng, phù hợp người thân thiết, không phóng đại." }
     ],
     helpStepRoom: "Tạo mã phòng mới hoặc vào bằng liên kết mời.",
-    helpStepSettings: "Chọn ngôn ngữ và hướng dẫn dịch của bạn trước khi vào.",
+    helpStepSettings: "Chọn ngôn ngữ của bạn trước khi vào.",
     helpStepChat: "Tin của bạn hiện bằng ngôn ngữ của họ, tin của họ hiện bằng ngôn ngữ của bạn.",
     helpStepRulesIcon: "Biểu tượng thanh trượt bên phải dùng để chỉnh quy tắc dịch và thuật ngữ.",
+    replyToMessage: "Trả lời tin này",
+    replyingTo: (name) => `Đang trả lời ${name}`,
+    cancelReply: "Hủy trả lời",
     join: "Vào phòng",
     newRoom: "Mã phòng mới",
     chatRoom: "Phòng chat",
@@ -539,6 +564,9 @@ const els = {
   nameInput: document.querySelector("#nameInput"),
   languageInput: document.querySelector("#languageInput"),
   uiLanguageInput: document.querySelector("#uiLanguageInput"),
+  joinOptionsButton: document.querySelector("#joinOptionsButton"),
+  joinOptionsButtonText: document.querySelector("#joinOptionsButtonText"),
+  joinTranslationOptions: document.querySelector("#joinTranslationOptions"),
   translationGuideInput: document.querySelector("#translationGuideInput"),
   joinGlossaryInput: document.querySelector("#joinGlossaryInput"),
   guideIntroTitle: document.querySelector("#guideIntroTitle"),
@@ -586,6 +614,10 @@ const els = {
   messagePreviewList: document.querySelector("#messagePreviewList"),
   previewClearButton: document.querySelector("#previewClearButton"),
   languageHint: document.querySelector("#languageHint"),
+  replyPreview: document.querySelector("#replyPreview"),
+  replyPreviewSender: document.querySelector("#replyPreviewSender"),
+  replyPreviewText: document.querySelector("#replyPreviewText"),
+  replyCancelButton: document.querySelector("#replyCancelButton"),
   messageInput: document.querySelector("#messageInput"),
   previewButton: document.querySelector("#previewButton"),
   sendButton: document.querySelector("#sendButton")
@@ -618,6 +650,7 @@ const state = {
   typing: false,
   typingTimer: 0,
   pendingMismatchText: "",
+  replyTarget: null,
   seenMessageIds: new Set(),
   members: [],
   typingMembers: [],
@@ -636,6 +669,7 @@ els.glossaryInput.value = state.translationGlossary;
 els.joinGlossaryInput.value = state.translationGlossary;
 
 els.joinButton.addEventListener("click", joinRoom);
+els.joinOptionsButton.addEventListener("click", toggleJoinTranslationOptions);
 els.newRoomButton.addEventListener("click", () => {
   els.roomInput.value = randomRoom();
   els.roomInput.focus();
@@ -651,9 +685,11 @@ els.applyRulesButton.addEventListener("click", applyTranslationRules);
 els.addRuleButton.addEventListener("click", addTranslationRuleRow);
 els.collapseRulesButton.addEventListener("click", closeTranslationRulesPanel);
 els.glossaryInput.addEventListener("input", saveTranslationGlossaryFromPanel);
+els.translationGuideInput.addEventListener("input", syncJoinTranslationRules);
 els.joinGlossaryInput.addEventListener("input", () => {
   state.translationGlossary = normalizeGlossaryText(els.joinGlossaryInput.value);
   saveTranslationGlossary();
+  updateJoinOptionsButton();
 });
 els.notificationButton.addEventListener("click", toggleNotifications);
 els.uiLanguageInput.addEventListener("change", () => {
@@ -664,6 +700,7 @@ els.uiLanguageInput.addEventListener("change", () => {
 els.messageForm.addEventListener("submit", sendMessage);
 els.previewButton.addEventListener("click", previewMessage);
 els.previewClearButton.addEventListener("click", hideMessagePreview);
+els.replyCancelButton.addEventListener("click", clearReplyTarget);
 els.messageInput.addEventListener("input", () => {
   resizeComposer();
   state.pendingMismatchText = "";
@@ -736,10 +773,12 @@ async function joinRoom() {
   state.sending = false;
   state.previewing = false;
   state.typing = false;
+  state.replyTarget = null;
   els.messageInput.disabled = false;
   els.sendButton.disabled = false;
   hideLanguageHint();
   hideMessagePreview();
+  renderReplyPreview();
   state.memberCount = 0;
   state.members = [];
   state.typingMembers = [];
@@ -760,6 +799,29 @@ async function joinRoom() {
     updateNotificationButton();
   });
   els.messageInput.focus();
+}
+
+function toggleJoinTranslationOptions() {
+  els.joinTranslationOptions.hidden = !els.joinTranslationOptions.hidden;
+  updateJoinOptionsButton();
+}
+
+function updateJoinOptionsButton() {
+  const isOpen = !els.joinTranslationOptions.hidden;
+  const hasOptions = state.translationRules.length > 0 || Boolean(state.translationGlossary);
+  els.joinOptionsButton.classList.toggle("active", isOpen || hasOptions);
+  els.joinOptionsButton.setAttribute("aria-expanded", String(isOpen));
+  els.joinOptionsButtonText.textContent = hasOptions ? t("translationOptionsActive") : t("translationOptions");
+}
+
+function syncJoinTranslationRules() {
+  state.translationRules = parseTranslationRules(els.translationGuideInput.value);
+  state.translationGuide = buildTranslationGuide(state.translationRules, state.translationGlossary);
+  localStorage.setItem("translator.translationRules", JSON.stringify(state.translationRules));
+  localStorage.setItem("translator.translationGuide", state.translationGuide);
+  updateJoinOptionsButton();
+  updateTranslationRulesButton();
+  updateRulesFeedback();
 }
 
 async function requestRoomJoin() {
@@ -983,6 +1045,7 @@ function leaveRoom() {
   window.clearTimeout(state.typingTimer);
   state.pendingMismatchText = "";
   state.roomAccessToken = "";
+  state.replyTarget = null;
   els.messageInput.disabled = false;
   els.sendButton.disabled = false;
   els.messages.replaceChildren();
@@ -1006,6 +1069,7 @@ function leaveRoom() {
   els.glossaryInput.value = state.translationGlossary;
   els.joinGlossaryInput.value = state.translationGlossary;
   hideMessagePreview();
+  renderReplyPreview();
   els.roomInput.focus();
 }
 
@@ -1285,6 +1349,7 @@ function saveTranslationGlossaryFromPanel() {
   state.translationGuide = buildTranslationGuide(state.translationRules, state.translationGlossary);
   localStorage.setItem("translator.translationGlossary", state.translationGlossary);
   els.joinGlossaryInput.value = state.translationGlossary;
+  updateJoinOptionsButton();
   updateTranslationRulesButton();
   updateRulesFeedback();
 }
@@ -1352,12 +1417,14 @@ async function sendMessage(event) {
         language: state.language,
         roomAccessToken: state.roomAccessToken,
         translationGuide: state.translationGuide,
+        replyToId: state.replyTarget?.id || "",
         text
       })
     });
     if (!response.ok) throw new Error("Message failed");
     els.messageInput.value = "";
     state.pendingMismatchText = "";
+    clearReplyTarget();
     hideMessagePreview();
     sendTyping(false).catch(() => {});
     resizeComposer();
@@ -1543,6 +1610,15 @@ function renderMessage(message) {
 
   const item = document.createElement("li");
   item.className = `message${message.senderId === state.clientId ? " mine" : ""}`;
+  item.dataset.messageId = message.id || "";
+  item.tabIndex = 0;
+  item.title = t("replyToMessage");
+  item.addEventListener("click", () => selectReplyTarget(message, item));
+  item.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    selectReplyTarget(message, item);
+  });
 
   const meta = document.createElement("div");
   meta.className = "message-meta";
@@ -1559,7 +1635,13 @@ function renderMessage(message) {
   translated.textContent = message.translatedText;
 
   meta.append(sender, provider);
-  item.append(meta, translated);
+  item.append(meta);
+
+  if (message.replyTo) {
+    item.append(createReplyContextElement(message.replyTo));
+  }
+
+  item.append(translated);
 
   if (message.originalVisible) {
     const original = document.createElement("p");
@@ -1595,6 +1677,75 @@ function renderMessage(message) {
 
   els.messages.append(item);
   item.scrollIntoView({ block: "end", behavior: "smooth" });
+}
+
+function createReplyContextElement(replyTo) {
+  const box = document.createElement("div");
+  box.className = "message-reply-context";
+  box.title = t("replyToMessage");
+
+  const label = document.createElement("span");
+  label.className = "message-reply-label";
+  label.textContent = t("replyingTo", replyTo.senderName || "");
+
+  const text = document.createElement("p");
+  text.className = "message-reply-text";
+  text.textContent = replyTo.translatedText || replyTo.text || "";
+
+  box.append(label, text);
+  box.addEventListener("click", (event) => {
+    event.stopPropagation();
+    scrollToMessage(replyTo.id);
+  });
+  return box;
+}
+
+function selectReplyTarget(message, item) {
+  if (!message?.id) return;
+  state.replyTarget = {
+    id: message.id,
+    senderName: message.senderName || "",
+    text: message.translatedText || message.text || ""
+  };
+  markReplySelected(item);
+  renderReplyPreview();
+  els.messageInput.focus();
+}
+
+function markReplySelected(item) {
+  els.messages.querySelectorAll(".reply-selected").forEach((element) => {
+    element.classList.remove("reply-selected");
+  });
+  item?.classList.add("reply-selected");
+}
+
+function clearReplyTarget() {
+  state.replyTarget = null;
+  markReplySelected(null);
+  renderReplyPreview();
+}
+
+function renderReplyPreview() {
+  if (!state.replyTarget) {
+    els.replyPreview.hidden = true;
+    els.replyPreviewSender.textContent = "";
+    els.replyPreviewText.textContent = "";
+    return;
+  }
+
+  els.replyPreview.hidden = false;
+  els.replyPreviewSender.textContent = t("replyingTo", state.replyTarget.senderName);
+  els.replyPreviewText.textContent = summarizeInlineText(state.replyTarget.text, 120);
+}
+
+function scrollToMessage(messageId) {
+  const target = [...els.messages.children].find((item) => item.dataset.messageId === messageId);
+  if (!target) return;
+  target.scrollIntoView({ block: "center", behavior: "smooth" });
+  target.classList.add("message-highlight");
+  window.setTimeout(() => {
+    target.classList.remove("message-highlight");
+  }, 1400);
 }
 
 function renderSystemMessage(text) {
@@ -1663,7 +1814,10 @@ function applyUiLanguage() {
   setButtonLabel(els.composerLeaveButton, t("leaveRoom"));
   setButtonLabel(els.previewButton, t("previewButton"));
   setButtonLabel(els.previewClearButton, t("previewClear"));
+  setButtonLabel(els.replyCancelButton, t("cancelReply"));
   setButtonLabel(els.sendButton, t("send"));
+  setButtonLabel(els.joinOptionsButton, t("translationOptions"));
+  updateJoinOptionsButton();
   els.messageInput.placeholder = t("messagePlaceholder");
   els.translationGuideInput.placeholder = t("translationGuidePlaceholder");
   els.joinGlossaryInput.placeholder = t("glossaryPlaceholder");
@@ -1683,6 +1837,7 @@ function applyUiLanguage() {
   updateMemberCount();
   renderPresenceSummary();
   renderTypingIndicator();
+  renderReplyPreview();
   refreshStatus();
 }
 
@@ -1732,6 +1887,12 @@ function t(key, ...args) {
 
 function normalizeUiLanguage(value) {
   return Object.hasOwn(uiText, value) ? value : "ko";
+}
+
+function summarizeInlineText(value, limit = 140) {
+  const clean = String(value || "").trim().replace(/\s+/g, " ");
+  if (clean.length <= limit) return clean;
+  return `${clean.slice(0, Math.max(0, limit - 3))}...`;
 }
 
 function detectUiLanguage() {
@@ -1877,6 +2038,7 @@ function saveTranslationRules() {
   localStorage.setItem("translator.translationRules", JSON.stringify(state.translationRules));
   localStorage.setItem("translator.translationGuide", state.translationGuide);
   els.translationGuideInput.value = displayTranslationRulesForInput(state.translationRules);
+  updateJoinOptionsButton();
   updateTranslationRulesButton();
   updateRulesFeedback();
 }
@@ -1887,6 +2049,7 @@ function saveTranslationGlossary() {
   localStorage.setItem("translator.translationGlossary", state.translationGlossary);
   els.glossaryInput.value = state.translationGlossary;
   els.joinGlossaryInput.value = state.translationGlossary;
+  updateJoinOptionsButton();
   updateRulesFeedback();
 }
 
