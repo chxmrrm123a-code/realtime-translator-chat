@@ -10,6 +10,7 @@ const port = Number(process.env.PORT || 4173);
 const host = process.env.HOST || "0.0.0.0";
 const roomCapacity = toBoundedInteger(process.env.ROOM_CAPACITY, 30, 1, 100);
 const roomHistoryLimit = toBoundedInteger(process.env.ROOM_HISTORY_LIMIT, 25, 5, 100);
+const messageRecallWindowMs = 2 * 60 * 1000;
 const vapidSubject = process.env.PUSH_VAPID_SUBJECT || "mailto:translator@example.com";
 
 const languages = {
@@ -76,6 +77,12 @@ function ensureRoomDefaults(room) {
   return room;
 }
 
+function ensureMessageDefaults(message) {
+  message.readBy ||= {};
+  message.recalledAt ||= "";
+  return message;
+}
+
 function normalizeRoom(value) {
   const clean = String(value || "")
     .trim()
@@ -129,17 +136,59 @@ function serializeRoom(room) {
   };
 }
 
+function serializeReadStatus(room, message) {
+  ensureMessageDefaults(message);
+  const currentRecipientIds = new Set(
+    [...room.clients.values()]
+      .filter((client) => client.id !== message.senderId)
+      .map((client) => client.id)
+  );
+  const readers = Object.values(message.readBy || {}).filter((reader) => currentRecipientIds.has(reader.id));
+  const totalRecipients = currentRecipientIds.size;
+  return {
+    messageId: message.id,
+    readCount: readers.length,
+    totalRecipients,
+    allRead: totalRecipients > 0 && readers.length >= totalRecipients,
+    readers
+  };
+}
+
+function broadcastReadStatus(room, message) {
+  const readStatus = serializeReadStatus(room, message);
+  for (const client of room.clients.values()) {
+    sendSse(client, "messageRead", {
+      room: room.code,
+      ...readStatus
+    });
+  }
+}
+
+function broadcastRecall(room, message) {
+  for (const client of room.clients.values()) {
+    sendSse(client, "messageRecall", {
+      room: room.code,
+      messageId: message.id,
+      senderId: message.senderId,
+      senderName: message.senderName,
+      recalledAt: message.recalledAt
+    });
+  }
+}
+
 function createReplyReference(room, replyToId) {
   const id = String(replyToId || "").slice(0, 64);
   if (!id) return null;
   const message = room.history.find((item) => item.id === id);
   if (!message) return null;
+  ensureMessageDefaults(message);
   return {
     id: message.id,
     senderName: message.senderName,
     sourceLanguage: message.sourceLanguage,
     sourceLanguageName: localNames[message.sourceLanguage],
-    text: summarizeInlineText(message.text, 280),
+    text: message.recalledAt ? "" : summarizeInlineText(message.text, 280),
+    recalledAt: message.recalledAt || "",
     createdAt: message.createdAt
   };
 }
@@ -147,6 +196,19 @@ function createReplyReference(room, replyToId) {
 async function getReplyReferenceForClient(room, replyTo, targetLanguage) {
   if (!replyTo?.id) return null;
   const sourceMessage = room.history.find((message) => message.id === replyTo.id) || replyTo;
+  ensureMessageDefaults(sourceMessage);
+  if (sourceMessage.recalledAt || replyTo.recalledAt) {
+    return {
+      ...replyTo,
+      text: "",
+      recalledAt: sourceMessage.recalledAt || replyTo.recalledAt,
+      targetLanguage,
+      targetLanguageName: localNames[targetLanguage],
+      translatedText: "",
+      translationProvider: "original",
+      translationError: null
+    };
+  }
   const translateFor = createTranslatorForMessage(sourceMessage, []);
   const translation = await translateFor(targetLanguage);
   return {
@@ -416,6 +478,97 @@ async function handleTyping(req, res) {
     broadcastTyping(room);
   }
   sendJson(res, 200, { ok: true });
+}
+
+async function handleMessageRead(req, res) {
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: "invalid_read_payload" });
+    return;
+  }
+
+  const room = getRoom(payload.room);
+  const clientId = String(payload.clientId || "").slice(0, 64);
+  const client = room.clients.get(clientId);
+  if (!client) {
+    sendJson(res, 200, { ok: true, updated: 0 });
+    return;
+  }
+
+  const messageIds = Array.isArray(payload.messageIds) ? payload.messageIds : [payload.messageId];
+  const updatedMessages = [];
+  for (const rawId of messageIds) {
+    const messageId = String(rawId || "").slice(0, 64);
+    const message = room.history.find((item) => item.id === messageId);
+    if (!message) continue;
+    ensureMessageDefaults(message);
+    if (message.senderId === clientId || message.recalledAt) continue;
+    if (message.readBy[clientId]) continue;
+
+    message.readBy[clientId] = {
+      id: client.id,
+      name: client.name,
+      language: client.language,
+      readAt: new Date().toISOString()
+    };
+    updatedMessages.push(message);
+  }
+
+  for (const message of updatedMessages) {
+    broadcastReadStatus(room, message);
+  }
+
+  sendJson(res, 200, { ok: true, updated: updatedMessages.length });
+}
+
+async function handleMessageRecall(req, res) {
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: "invalid_recall_payload" });
+    return;
+  }
+
+  const room = getRoom(payload.room);
+  const clientId = String(payload.clientId || "").slice(0, 64);
+  const messageId = String(payload.messageId || "").slice(0, 64);
+  const message = room.history.find((item) => item.id === messageId);
+  if (!message) {
+    sendJson(res, 404, { ok: false, error: "message_not_found" });
+    return;
+  }
+
+  ensureMessageDefaults(message);
+  if (message.senderId !== clientId) {
+    sendJson(res, 403, { ok: false, error: "sender_only" });
+    return;
+  }
+  if (message.recalledAt) {
+    sendJson(res, 200, { ok: true, recalledAt: message.recalledAt });
+    return;
+  }
+  if (Date.now() - Date.parse(message.createdAt) > messageRecallWindowMs) {
+    sendJson(res, 409, { ok: false, error: "recall_expired" });
+    return;
+  }
+
+  message.recalledAt = new Date().toISOString();
+  message.text = "";
+  message.replyTo = null;
+  message.readBy = {};
+  deleteTranslationCacheForMessage(message.id);
+  for (const item of room.history) {
+    if (item.replyTo?.id === message.id) {
+      item.replyTo.text = "";
+      item.replyTo.recalledAt = message.recalledAt;
+    }
+  }
+
+  broadcastRecall(room, message);
+  sendJson(res, 200, { ok: true, recalledAt: message.recalledAt });
 }
 
 async function handlePreview(req, res) {
@@ -724,6 +877,20 @@ async function deliverHistoryToClient(room, client) {
   const clients = [...room.clients.values()];
   for (const [messageIndex, message] of room.history.entries()) {
     if (client.closed) break;
+    ensureMessageDefaults(message);
+
+    if (message.recalledAt) {
+      sendSse(client, "message", {
+        ...message,
+        text: "",
+        translatedText: "",
+        translationProvider: "original",
+        originalVisible: false,
+        peerTranslations: [],
+        readStatus: serializeReadStatus(room, message)
+      });
+      continue;
+    }
 
     const context =
       messageIndex > 0 ? room.history.slice(Math.max(0, messageIndex - 10), messageIndex) : [];
@@ -741,7 +908,8 @@ async function deliverHistoryToClient(room, client) {
       translationProvider: translation.provider,
       translationError: translation.error || null,
       originalVisible: client.language !== message.sourceLanguage,
-      peerTranslations
+      peerTranslations,
+      readStatus: serializeReadStatus(room, message)
     });
   }
 }
@@ -780,6 +948,8 @@ async function handleMessage(req, res) {
     sourceLanguageName: localNames[sourceLanguage],
     text,
     replyTo,
+    readBy: {},
+    recalledAt: "",
     createdAt: new Date().toISOString()
   };
   Object.defineProperty(message, "translationGuide", {
@@ -800,6 +970,11 @@ async function handleMessage(req, res) {
 
 async function deliverMessage(room, message, context) {
   const clients = [...room.clients.values()];
+  ensureMessageDefaults(message);
+  if (message.recalledAt) {
+    broadcastRecall(room, message);
+    return;
+  }
   const translateFor = createTranslatorForMessage(message, context);
 
   await Promise.all(
@@ -807,6 +982,19 @@ async function deliverMessage(room, message, context) {
       const translation = await translateFor(client.language);
       const replyTo = await getReplyReferenceForClient(room, message.replyTo, client.language);
       const peerTranslations = await getPeerTranslationsForClient(clients, client, message, translateFor);
+
+      if (message.recalledAt) {
+        sendSse(client, "message", {
+          ...message,
+          text: "",
+          translatedText: "",
+          translationProvider: "original",
+          originalVisible: false,
+          peerTranslations: [],
+          readStatus: serializeReadStatus(room, message)
+        });
+        return;
+      }
 
       sendSse(client, "message", {
         ...message,
@@ -817,10 +1005,13 @@ async function deliverMessage(room, message, context) {
         translationProvider: translation.provider,
         translationError: translation.error || null,
         originalVisible: client.language !== message.sourceLanguage,
-        peerTranslations
+        peerTranslations,
+        readStatus: serializeReadStatus(room, message)
       });
     })
   );
+
+  if (message.recalledAt) return;
 
   deliverPushNotifications(room, message, translateFor).catch((error) => {
     console.error("Push notification delivery failed:", error);
@@ -1253,6 +1444,16 @@ const server = createServer(async (req, res) => {
 
   if (req.method === "POST" && url.pathname === "/api/typing") {
     await handleTyping(req, res);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/message/read") {
+    await handleMessageRead(req, res);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/message/recall") {
+    await handleMessageRecall(req, res);
     return;
   }
 
