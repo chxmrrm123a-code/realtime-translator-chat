@@ -823,9 +823,6 @@ els.joinButton.addEventListener("click", joinRoom);
 els.joinOptionsButton.addEventListener("click", toggleJoinTranslationOptions);
 els.sentenceTranslatorButton.addEventListener("click", openSentenceTranslator);
 els.sentenceTranslatorCloseButton.addEventListener("click", closeSentenceTranslator);
-els.sentenceTranslatorModal.addEventListener("click", (event) => {
-  if (event.target === els.sentenceTranslatorModal) closeSentenceTranslator();
-});
 els.sentenceTranslatorForm.addEventListener("submit", translateSentence);
 els.sentenceCopyButton.addEventListener("click", copySentenceResult);
 els.newRoomButton.addEventListener("click", () => {
