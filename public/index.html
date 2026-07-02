@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#2563eb" />
     <title>AI 통역 채팅</title>
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/styles.css?v=14" />
+    <link rel="stylesheet" href="/styles.css?v=15" />
   </head>
   <body>
     <div class="app-shell">
@@ -88,6 +88,20 @@
             <div class="join-help-item">
               <span class="join-help-number">3</span>
               <span id="helpStepChat">내가 보낸 말은 상대 언어로, 상대 말은 내 언어로 보여요.</span>
+            </div>
+            <div class="join-help-item with-mark">
+              <span class="join-help-number">4</span>
+              <span class="join-help-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 7h10" />
+                  <path d="M18 7h2" />
+                  <path d="M16 5v4" />
+                  <path d="M4 17h2" />
+                  <path d="M10 17h10" />
+                  <path d="M8 15v4" />
+                </svg>
+              </span>
+              <span id="helpStepRulesIcon">채팅방 오른쪽 조절 아이콘은 번역 규칙과 용어집을 바꾸는 버튼이에요.</span>
             </div>
           </div>
           <div class="join-actions">
@@ -256,6 +270,6 @@
       </main>
     </div>
 
-    <script src="/app.js?v=14" type="module"></script>
+    <script src="/app.js?v=15" type="module"></script>
   </body>
 </html>
