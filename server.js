@@ -478,6 +478,44 @@ async function handlePreview(req, res) {
   sendJson(res, 200, { ok: true, previews });
 }
 
+async function handleSentenceTranslate(req, res) {
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: "invalid_sentence_translate_payload" });
+    return;
+  }
+
+  const text = String(payload.text || "").trim().slice(0, 2_000);
+  if (!text) {
+    sendJson(res, 422, { ok: false, error: "sentence_empty" });
+    return;
+  }
+
+  const sourceLanguage = normalizeLanguage(payload.sourceLanguage);
+  const targetLanguage = normalizeLanguage(payload.targetLanguage);
+  const translationGuide = normalizeTranslationGuide(payload.translationGuide);
+  const translation = await translateMessage({
+    text,
+    sourceLanguage,
+    targetLanguage,
+    context: [],
+    translationGuide
+  });
+
+  sendJson(res, 200, {
+    ok: true,
+    sourceLanguage,
+    sourceLanguageName: localNames[sourceLanguage],
+    targetLanguage,
+    targetLanguageName: localNames[targetLanguage],
+    translatedText: translation.text,
+    translationProvider: translation.provider,
+    translationError: translation.error || null
+  });
+}
+
 async function handleRetranslate(req, res) {
   let payload;
   try {
@@ -1200,6 +1238,11 @@ const server = createServer(async (req, res) => {
 
   if (req.method === "POST" && url.pathname === "/api/preview") {
     await handlePreview(req, res);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/sentence-translate") {
+    await handleSentenceTranslate(req, res);
     return;
   }
 
