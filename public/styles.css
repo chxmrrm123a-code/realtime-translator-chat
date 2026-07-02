@@ -159,6 +159,46 @@ h1 {
   grid-column: 1 / -1;
 }
 
+.join-options-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.join-options-toggle:hover,
+.join-options-toggle.active {
+  border-color: rgba(37, 99, 235, 0.34);
+  background: var(--soft-blue);
+  color: var(--blue);
+}
+
+.join-options-toggle[aria-expanded="true"] .join-options-chevron {
+  transform: rotate(180deg);
+}
+
+.join-options-chevron {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.16s ease;
+}
+
+.join-options {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(98, 112, 132, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
 label {
   display: grid;
   gap: 7px;
@@ -216,6 +256,10 @@ textarea:disabled {
   border: 1px solid rgba(37, 99, 235, 0.16);
   border-radius: 8px;
   background: var(--soft-blue);
+}
+
+.join-options .guide-intro {
+  margin-top: 0;
 }
 
 .guide-intro strong {
@@ -637,6 +681,26 @@ svg {
   border-radius: 8px;
   padding: 10px 12px;
   background: #fff;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
+}
+
+.message:hover {
+  border-color: rgba(37, 99, 235, 0.28);
+}
+
+.message:focus-visible,
+.message.reply-selected {
+  outline: none;
+  border-color: rgba(37, 99, 235, 0.48);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.message.message-highlight {
+  border-color: rgba(31, 157, 117, 0.48);
+  box-shadow: 0 0 0 3px rgba(31, 157, 117, 0.12);
 }
 
 .message.mine {
@@ -672,6 +736,32 @@ svg {
   overflow-wrap: anywhere;
   line-height: 1.4;
   font-size: 0.86rem;
+}
+
+.message-reply-context {
+  display: grid;
+  gap: 3px;
+  margin: 0 0 8px;
+  border-left: 3px solid rgba(37, 99, 235, 0.42);
+  border-radius: 7px;
+  padding: 7px 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.message-reply-label {
+  color: var(--blue);
+  font-size: 0.73rem;
+  font-weight: 900;
+}
+
+.message-reply-text {
+  margin: 0;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.82rem;
+  font-weight: 720;
 }
 
 .message-peer-box {
@@ -710,20 +800,26 @@ svg {
   bottom: 0;
   transform: translateX(-50%);
   width: min(980px, 100%);
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  padding: 12px 18px max(12px, env(safe-area-inset-bottom));
+  display: block;
+  padding: 10px 18px max(12px, env(safe-area-inset-bottom));
   background: rgba(247, 248, 250, 0.94);
   border-top: 1px solid var(--line);
   backdrop-filter: blur(14px);
 }
 
+.composer-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.composer-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
 .composer-hint {
-  position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: calc(100% + 8px);
   border: 1px solid rgba(216, 92, 74, 0.32);
   border-radius: 8px;
   padding: 9px 11px;
@@ -736,10 +832,6 @@ svg {
 }
 
 .message-preview {
-  position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: calc(100% + 8px);
   display: grid;
   gap: 9px;
   border: 1px solid rgba(37, 99, 235, 0.18);
@@ -747,6 +839,47 @@ svg {
   padding: 10px;
   background: rgba(255, 255, 255, 0.98);
   box-shadow: 0 12px 28px rgba(31, 42, 68, 0.12);
+}
+
+.reply-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-left: 4px solid var(--blue);
+  border-radius: 8px;
+  padding: 8px 8px 8px 10px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 24px rgba(31, 42, 68, 0.1);
+}
+
+.reply-preview-main {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.reply-preview-main span {
+  color: var(--blue);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.reply-preview-main p {
+  margin: 0;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.86rem;
+  font-weight: 760;
+}
+
+.composer-typing {
+  min-height: 18px;
+  padding: 0 2px;
+  color: var(--blue);
 }
 
 .message-preview-head {
