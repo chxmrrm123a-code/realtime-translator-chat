@@ -106,6 +106,13 @@ const uiText = {
     replyToMessage: "이 문장에 답장",
     replyingTo: (name) => `${name}에게 답장`,
     cancelReply: "답장 취소",
+    sentStatus: "전송됨",
+    readCountStatus: (count) => `${count}명 읽음`,
+    allReadStatus: "모두 읽음",
+    recallMessage: "회수",
+    recallFailed: "회수 실패",
+    recallExpired: "회수 가능 시간이 지났어요.",
+    messageRecalled: "메시지가 회수되었습니다",
     join: "입장",
     newRoom: "새 방 코드",
     chatRoom: "채팅방",
@@ -233,6 +240,13 @@ const uiText = {
     replyToMessage: "Reply to this message",
     replyingTo: (name) => `Replying to ${name}`,
     cancelReply: "Cancel reply",
+    sentStatus: "Sent",
+    readCountStatus: (count) => `${count} read`,
+    allReadStatus: "Read by all",
+    recallMessage: "Recall",
+    recallFailed: "Recall failed",
+    recallExpired: "Recall time has passed.",
+    messageRecalled: "Message was recalled",
     join: "Join",
     newRoom: "New room code",
     chatRoom: "Chat room",
@@ -360,6 +374,13 @@ const uiText = {
     replyToMessage: "この文に返信",
     replyingTo: (name) => `${name}に返信`,
     cancelReply: "返信を取消",
+    sentStatus: "送信済み",
+    readCountStatus: (count) => `${count}人既読`,
+    allReadStatus: "全員既読",
+    recallMessage: "取消",
+    recallFailed: "取消失敗",
+    recallExpired: "取消できる時間を過ぎました。",
+    messageRecalled: "メッセージが取り消されました",
     join: "入室",
     newRoom: "新しいルームコード",
     chatRoom: "チャットルーム",
@@ -487,6 +508,13 @@ const uiText = {
     replyToMessage: "回复这句话",
     replyingTo: (name) => `回复 ${name}`,
     cancelReply: "取消回复",
+    sentStatus: "已发送",
+    readCountStatus: (count) => `${count}人已读`,
+    allReadStatus: "全部已读",
+    recallMessage: "撤回",
+    recallFailed: "撤回失败",
+    recallExpired: "已超过可撤回时间。",
+    messageRecalled: "消息已撤回",
     join: "进入",
     newRoom: "新房间代码",
     chatRoom: "聊天房间",
@@ -614,6 +642,13 @@ const uiText = {
     replyToMessage: "Trả lời tin này",
     replyingTo: (name) => `Đang trả lời ${name}`,
     cancelReply: "Hủy trả lời",
+    sentStatus: "Đã gửi",
+    readCountStatus: (count) => `${count} người đã đọc`,
+    allReadStatus: "Tất cả đã đọc",
+    recallMessage: "Thu hồi",
+    recallFailed: "Thu hồi thất bại",
+    recallExpired: "Đã quá thời gian thu hồi.",
+    messageRecalled: "Tin nhắn đã được thu hồi",
     join: "Vào phòng",
     newRoom: "Mã phòng mới",
     chatRoom: "Phòng chat",
@@ -764,6 +799,10 @@ const state = {
   pendingMismatchText: "",
   replyTarget: null,
   seenMessageIds: new Set(),
+  messageElements: new Map(),
+  pendingReadIds: new Set(),
+  sentReadIds: new Set(),
+  readReceiptTimer: 0,
   members: [],
   typingMembers: [],
   memberCount: 0,
@@ -895,6 +934,10 @@ async function joinRoom() {
   renderRoomHeader();
   els.messages.replaceChildren();
   state.seenMessageIds.clear();
+  state.messageElements.clear();
+  state.pendingReadIds.clear();
+  state.sentReadIds.clear();
+  window.clearTimeout(state.readReceiptTimer);
   state.sending = false;
   state.previewing = false;
   state.typing = false;
@@ -1244,6 +1287,16 @@ function connectEvents() {
     renderMessage(payload);
   });
 
+  state.eventSource.addEventListener("messageRead", (event) => {
+    const payload = JSON.parse(event.data);
+    updateMessageReadStatus(payload);
+  });
+
+  state.eventSource.addEventListener("messageRecall", (event) => {
+    const payload = JSON.parse(event.data);
+    markMessageRecalled(payload);
+  });
+
   state.eventSource.onerror = () => {
     setStatusKey("reconnecting", "");
   };
@@ -1262,6 +1315,10 @@ function leaveRoom() {
   els.messageInput.value = "";
   resizeComposer();
   state.seenMessageIds.clear();
+  state.messageElements.clear();
+  state.pendingReadIds.clear();
+  state.sentReadIds.clear();
+  window.clearTimeout(state.readReceiptTimer);
   state.sending = false;
   state.previewing = false;
   state.typing = false;
@@ -1834,6 +1891,16 @@ function renderMessage(message) {
   const item = document.createElement("li");
   item.className = `message${message.senderId === state.clientId ? " mine" : ""}`;
   item.dataset.messageId = message.id || "";
+  item.dataset.senderId = message.senderId || "";
+
+  if (message.recalledAt) {
+    renderRecalledMessage(item, message);
+    els.messages.append(item);
+    state.messageElements.set(message.id, item);
+    item.scrollIntoView({ block: "end", behavior: "smooth" });
+    return;
+  }
+
   item.tabIndex = 0;
   item.title = t("replyToMessage");
   item.addEventListener("click", () => selectReplyTarget(message, item));
@@ -1898,13 +1965,178 @@ function renderMessage(message) {
     }
   }
 
+  const footer = createMessageFooter(message);
+  if (footer) item.append(footer);
+
   els.messages.append(item);
+  state.messageElements.set(message.id, item);
+  if (message.senderId !== state.clientId) scheduleReadReceipt(message.id);
   item.scrollIntoView({ block: "end", behavior: "smooth" });
+}
+
+function renderRecalledMessage(item, message) {
+  item.className = `message recalled${message.senderId === state.clientId ? " mine" : ""}`;
+  item.tabIndex = -1;
+  item.title = "";
+  item.replaceChildren();
+
+  const meta = document.createElement("div");
+  meta.className = "message-meta";
+  const sender = document.createElement("span");
+  sender.textContent = message.senderName || "";
+  meta.append(sender);
+
+  const recalled = document.createElement("p");
+  recalled.className = "message-text recalled-text";
+  recalled.textContent = t("messageRecalled");
+
+  item.append(meta, recalled);
+}
+
+function createMessageFooter(message) {
+  if (message.senderId !== state.clientId) return null;
+
+  const footer = document.createElement("div");
+  footer.className = "message-footer";
+
+  const status = document.createElement("span");
+  status.className = "message-read-status";
+  status.dataset.messageId = message.id || "";
+  status.textContent = readStatusText(message.readStatus);
+  footer.append(status);
+
+  if (canRecallMessage(message)) {
+    const recallButton = document.createElement("button");
+    recallButton.type = "button";
+    recallButton.className = "message-recall-button";
+    recallButton.textContent = t("recallMessage");
+    recallButton.title = t("recallMessage");
+    recallButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      recallMessage(message.id);
+    });
+    footer.append(recallButton);
+
+    const remainingMs = messageRecallRemainingMs(message);
+    if (remainingMs > 0) {
+      window.setTimeout(() => {
+        recallButton.remove();
+      }, remainingMs + 250);
+    }
+  }
+
+  return footer;
+}
+
+function readStatusText(readStatus = {}) {
+  const count = Number(readStatus.readCount || 0);
+  const total = Number(readStatus.totalRecipients || 0);
+  if (total <= 0 || count <= 0) return t("sentStatus");
+  if (readStatus.allRead || count >= total) return t("allReadStatus");
+  return t("readCountStatus", count);
+}
+
+function updateMessageReadStatus(payload) {
+  const status = [...els.messages.querySelectorAll(".message-read-status")].find(
+    (element) => element.dataset.messageId === payload.messageId
+  );
+  if (!status) return;
+  status.textContent = readStatusText(payload);
+}
+
+function messageRecallRemainingMs(message) {
+  const createdAt = Date.parse(message.createdAt || "");
+  if (!Number.isFinite(createdAt)) return 0;
+  return Math.max(0, 2 * 60 * 1000 - (Date.now() - createdAt));
+}
+
+function canRecallMessage(message) {
+  return (
+    message.senderId === state.clientId &&
+    !message.recalledAt &&
+    messageRecallRemainingMs(message) > 0
+  );
+}
+
+async function recallMessage(messageId) {
+  if (!messageId) return;
+  try {
+    const response = await fetch("/api/message/recall", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        room: state.room,
+        clientId: state.clientId,
+        roomAccessToken: state.roomAccessToken,
+        messageId
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.ok) {
+      setStatusKey(payload.error === "recall_expired" ? "recallExpired" : "recallFailed", "demo");
+    }
+  } catch {
+    setStatusKey("recallFailed", "demo");
+  }
+}
+
+function markMessageRecalled(payload) {
+  const item = state.messageElements.get(payload.messageId);
+  if (item) {
+    renderRecalledMessage(item, {
+      id: payload.messageId,
+      senderId: payload.senderId,
+      senderName: payload.senderName,
+      recalledAt: payload.recalledAt
+    });
+  }
+
+  if (state.replyTarget?.id === payload.messageId) clearReplyTarget();
+  updateRecalledReplyContexts(payload.messageId);
+}
+
+function updateRecalledReplyContexts(messageId) {
+  for (const box of els.messages.querySelectorAll(".message-reply-context")) {
+    if (box.dataset.replyId !== messageId) continue;
+    box.classList.add("recalled");
+    const text = box.querySelector(".message-reply-text");
+    if (text) text.textContent = t("messageRecalled");
+  }
+}
+
+function scheduleReadReceipt(messageId) {
+  if (!messageId || state.sentReadIds.has(messageId)) return;
+  state.pendingReadIds.add(messageId);
+  window.clearTimeout(state.readReceiptTimer);
+  state.readReceiptTimer = window.setTimeout(flushReadReceipts, 350);
+}
+
+async function flushReadReceipts() {
+  const messageIds = [...state.pendingReadIds].filter((id) => !state.sentReadIds.has(id));
+  state.pendingReadIds.clear();
+  if (messageIds.length === 0 || els.chatPanel.hidden) return;
+  for (const id of messageIds) state.sentReadIds.add(id);
+
+  try {
+    await fetch("/api/message/read", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        room: state.room,
+        clientId: state.clientId,
+        roomAccessToken: state.roomAccessToken,
+        messageIds
+      })
+    });
+  } catch {
+    for (const id of messageIds) state.sentReadIds.delete(id);
+  }
 }
 
 function createReplyContextElement(replyTo) {
   const box = document.createElement("div");
   box.className = "message-reply-context";
+  box.dataset.replyId = replyTo.id || "";
   box.title = t("replyToMessage");
 
   const label = document.createElement("span");
@@ -1913,9 +2145,10 @@ function createReplyContextElement(replyTo) {
 
   const text = document.createElement("p");
   text.className = "message-reply-text";
-  text.textContent = replyTo.translatedText || replyTo.text || "";
+  text.textContent = replyTo.recalledAt ? t("messageRecalled") : replyTo.translatedText || replyTo.text || "";
 
   box.append(label, text);
+  box.classList.toggle("recalled", Boolean(replyTo.recalledAt));
   box.addEventListener("click", (event) => {
     event.stopPropagation();
     scrollToMessage(replyTo.id);
