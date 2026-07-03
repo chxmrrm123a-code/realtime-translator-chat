@@ -939,17 +939,17 @@ svg {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 6px;
-  margin-top: 0;
+  gap: 4px;
+  margin-top: -2px;
   color: var(--muted);
   font-size: 0.74rem;
   font-weight: 850;
-  line-height: 1.15;
+  line-height: 1.05;
 }
 
 .message-text + .message-footer,
 .message-original + .message-footer {
-  margin-top: -1px;
+  margin-top: -4px;
 }
 
 .message-read-status {
@@ -968,9 +968,7 @@ svg {
 }
 
 .message-recall-button::before {
-  content: "·";
-  margin-right: 6px;
-  color: var(--muted);
+  content: "";
 }
 
 .message-recall-button:hover {
@@ -982,8 +980,10 @@ svg {
 .message-reaction-area {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 5px;
-  margin-top: 5px;
+  margin-top: 4px;
+  position: relative;
 }
 
 .message-reaction-area.summary-only {
@@ -1020,6 +1020,76 @@ svg {
 .message-reaction-button:disabled {
   cursor: default;
   opacity: 1;
+}
+
+.message-reaction-picker {
+  position: relative;
+  display: inline-flex;
+}
+
+.message-reaction-picker-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 54px;
+  min-height: 27px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 999px;
+  padding: 0 9px;
+  background: rgba(255, 255, 255, 0.68);
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.message-reaction-picker-button:hover,
+.message-reaction-picker.open .message-reaction-picker-button {
+  border-color: rgba(37, 99, 235, 0.36);
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.message-reaction-picker-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 6px);
+  display: flex;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(31, 42, 68, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+  z-index: 20;
+}
+
+.message-reaction-picker.open .message-reaction-picker-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.message-reaction-option {
+  min-width: 30px;
+  min-height: 30px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  background: transparent;
+  font-size: 1.18rem;
+  line-height: 1;
+}
+
+.message-reaction-option:hover {
+  background: rgba(37, 99, 235, 0.08);
 }
 
 .provider {
