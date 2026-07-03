@@ -939,8 +939,8 @@ svg {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 6px;
+  margin-top: 4px;
   color: var(--muted);
   font-size: 0.74rem;
   font-weight: 850;
@@ -951,19 +951,69 @@ svg {
 }
 
 .message-recall-button {
-  min-height: 28px;
-  border: 1px solid rgba(216, 92, 74, 0.22);
-  border-radius: 999px;
-  padding: 0 9px;
-  background: rgba(255, 255, 255, 0.72);
+  min-height: auto;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
   color: var(--coral);
-  font-size: 0.74rem;
+  font-size: inherit;
   font-weight: 900;
 }
 
+.message-recall-button::before {
+  content: "·";
+  margin-right: 6px;
+  color: var(--muted);
+}
+
 .message-recall-button:hover {
-  border-color: rgba(216, 92, 74, 0.42);
-  background: var(--soft-coral);
+  color: #b94735;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.message-reaction-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.message-reaction-area.summary-only {
+  justify-content: flex-end;
+}
+
+.message-reaction-button {
+  min-width: 30px;
+  min-height: 27px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 999px;
+  padding: 0 8px;
+  background: rgba(255, 255, 255, 0.62);
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.message-reaction-button.has-count {
+  min-width: 40px;
+}
+
+.message-reaction-button.selected {
+  border-color: rgba(37, 99, 235, 0.42);
+  background: rgba(37, 99, 235, 0.11);
+}
+
+.message-reaction-button:hover {
+  border-color: rgba(37, 99, 235, 0.34);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.message-reaction-button:disabled {
+  cursor: default;
+  opacity: 1;
 }
 
 .provider {
