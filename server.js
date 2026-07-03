@@ -11,6 +11,14 @@ const host = process.env.HOST || "0.0.0.0";
 const roomCapacity = toBoundedInteger(process.env.ROOM_CAPACITY, 30, 1, 100);
 const roomHistoryLimit = toBoundedInteger(process.env.ROOM_HISTORY_LIMIT, 25, 5, 100);
 const messageRecallWindowMs = 2 * 60 * 1000;
+const messageReactionOptions = [
+  { id: "like", emoji: "👍" },
+  { id: "laugh", emoji: "😂" },
+  { id: "cry", emoji: "😢" },
+  { id: "wow", emoji: "😮" },
+  { id: "heart", emoji: "❤️" }
+];
+const messageReactionIds = new Set(messageReactionOptions.map((reaction) => reaction.id));
 const vapidSubject = process.env.PUSH_VAPID_SUBJECT || "mailto:translator@example.com";
 
 const languages = {
@@ -79,6 +87,7 @@ function ensureRoomDefaults(room) {
 
 function ensureMessageDefaults(message) {
   message.readBy ||= {};
+  message.reactions ||= {};
   message.recalledAt ||= "";
   return message;
 }
@@ -154,12 +163,38 @@ function serializeReadStatus(room, message) {
   };
 }
 
+function serializeMessageReactions(message) {
+  ensureMessageDefaults(message);
+  return messageReactionOptions
+    .map((reaction) => {
+      const reactors = Object.values(message.reactions[reaction.id] || {});
+      return {
+        id: reaction.id,
+        emoji: reaction.emoji,
+        count: reactors.length,
+        reactedBy: reactors.map((reactor) => reactor.id)
+      };
+    })
+    .filter((reaction) => reaction.count > 0);
+}
+
 function broadcastReadStatus(room, message) {
   const readStatus = serializeReadStatus(room, message);
   for (const client of room.clients.values()) {
     sendSse(client, "messageRead", {
       room: room.code,
       ...readStatus
+    });
+  }
+}
+
+function broadcastMessageReaction(room, message) {
+  const reactions = serializeMessageReactions(message);
+  for (const client of room.clients.values()) {
+    sendSse(client, "messageReaction", {
+      room: room.code,
+      messageId: message.id,
+      reactions
     });
   }
 }
@@ -559,6 +594,7 @@ async function handleMessageRecall(req, res) {
   message.text = "";
   message.replyTo = null;
   message.readBy = {};
+  message.reactions = {};
   deleteTranslationCacheForMessage(message.id);
   for (const item of room.history) {
     if (item.replyTo?.id === message.id) {
@@ -569,6 +605,62 @@ async function handleMessageRecall(req, res) {
 
   broadcastRecall(room, message);
   sendJson(res, 200, { ok: true, recalledAt: message.recalledAt });
+}
+
+async function handleMessageReaction(req, res) {
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { ok: false, error: "invalid_reaction_payload" });
+    return;
+  }
+
+  const room = getRoom(payload.room);
+  const clientId = String(payload.clientId || "").slice(0, 64);
+  const messageId = String(payload.messageId || "").slice(0, 64);
+  const reactionId = String(payload.reactionId || "").slice(0, 24);
+  const client = room.clients.get(clientId);
+  const message = room.history.find((item) => item.id === messageId);
+
+  if (!client || !message) {
+    sendJson(res, 404, { ok: false, error: "reaction_target_not_found" });
+    return;
+  }
+  ensureMessageDefaults(message);
+  if (message.recalledAt) {
+    sendJson(res, 409, { ok: false, error: "message_recalled" });
+    return;
+  }
+  if (message.senderId === clientId) {
+    sendJson(res, 403, { ok: false, error: "own_message_reaction_disabled" });
+    return;
+  }
+  if (!messageReactionIds.has(reactionId)) {
+    sendJson(res, 422, { ok: false, error: "invalid_reaction" });
+    return;
+  }
+
+  let removedSameReaction = false;
+  for (const id of messageReactionIds) {
+    if (!message.reactions[id]?.[clientId]) continue;
+    if (id === reactionId) removedSameReaction = true;
+    delete message.reactions[id][clientId];
+    if (Object.keys(message.reactions[id]).length === 0) delete message.reactions[id];
+  }
+
+  if (!removedSameReaction) {
+    message.reactions[reactionId] ||= {};
+    message.reactions[reactionId][clientId] = {
+      id: client.id,
+      name: client.name,
+      language: client.language,
+      reactedAt: new Date().toISOString()
+    };
+  }
+
+  broadcastMessageReaction(room, message);
+  sendJson(res, 200, { ok: true, reactions: serializeMessageReactions(message) });
 }
 
 async function handlePreview(req, res) {
@@ -887,6 +979,7 @@ async function deliverHistoryToClient(room, client) {
         translationProvider: "original",
         originalVisible: false,
         peerTranslations: [],
+        reactions: [],
         readStatus: serializeReadStatus(room, message)
       });
       continue;
@@ -909,6 +1002,7 @@ async function deliverHistoryToClient(room, client) {
       translationError: translation.error || null,
       originalVisible: client.language !== message.sourceLanguage,
       peerTranslations,
+      reactions: serializeMessageReactions(message),
       readStatus: serializeReadStatus(room, message)
     });
   }
@@ -949,6 +1043,7 @@ async function handleMessage(req, res) {
     text,
     replyTo,
     readBy: {},
+    reactions: {},
     recalledAt: "",
     createdAt: new Date().toISOString()
   };
@@ -991,6 +1086,7 @@ async function deliverMessage(room, message, context) {
           translationProvider: "original",
           originalVisible: false,
           peerTranslations: [],
+          reactions: [],
           readStatus: serializeReadStatus(room, message)
         });
         return;
@@ -1006,6 +1102,7 @@ async function deliverMessage(room, message, context) {
         translationError: translation.error || null,
         originalVisible: client.language !== message.sourceLanguage,
         peerTranslations,
+        reactions: serializeMessageReactions(message),
         readStatus: serializeReadStatus(room, message)
       });
     })
@@ -1454,6 +1551,11 @@ const server = createServer(async (req, res) => {
 
   if (req.method === "POST" && url.pathname === "/api/message/recall") {
     await handleMessageRecall(req, res);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/message/reaction") {
+    await handleMessageReaction(req, res);
     return;
   }
 
