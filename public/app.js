@@ -7,6 +7,13 @@ const languages = {
 };
 
 const tonePresetIds = ["casual", "business", "polite", "friendly", "close"];
+const reactionOptions = [
+  { id: "like", emoji: "👍" },
+  { id: "laugh", emoji: "😂" },
+  { id: "cry", emoji: "😢" },
+  { id: "wow", emoji: "😮" },
+  { id: "heart", emoji: "❤️" }
+];
 
 const uiText = {
   ko: {
@@ -800,6 +807,7 @@ const state = {
   replyTarget: null,
   seenMessageIds: new Set(),
   messageElements: new Map(),
+  messageData: new Map(),
   pendingReadIds: new Set(),
   sentReadIds: new Set(),
   readReceiptTimer: 0,
@@ -1294,6 +1302,11 @@ function connectEvents() {
     markMessageRecalled(payload);
   });
 
+  state.eventSource.addEventListener("messageReaction", (event) => {
+    const payload = JSON.parse(event.data);
+    updateMessageReactions(payload);
+  });
+
   state.eventSource.onerror = () => {
     setStatusKey("reconnecting", "");
   };
@@ -1313,6 +1326,7 @@ function leaveRoom() {
   resizeComposer();
   state.seenMessageIds.clear();
   state.messageElements.clear();
+  state.messageData.clear();
   state.pendingReadIds.clear();
   state.sentReadIds.clear();
   window.clearTimeout(state.readReceiptTimer);
@@ -1884,6 +1898,7 @@ function renderTypingIndicator() {
 function renderMessage(message) {
   if (message.id && state.seenMessageIds.has(message.id)) return;
   if (message.id) state.seenMessageIds.add(message.id);
+  if (message.id) state.messageData.set(message.id, message);
 
   const item = document.createElement("li");
   item.className = `message${message.senderId === state.clientId ? " mine" : ""}`;
@@ -1937,6 +1952,12 @@ function renderMessage(message) {
     item.append(original);
   }
 
+  const footer = createMessageFooter(message);
+  if (footer) item.append(footer);
+
+  const reactions = createMessageReactionArea(message);
+  if (reactions) item.append(reactions);
+
   if (message.senderId === state.clientId && Array.isArray(message.peerTranslations)) {
     const peerTranslations = message.peerTranslations.filter((translation) => translation?.translatedText);
     if (peerTranslations.length > 0) {
@@ -1961,9 +1982,6 @@ function renderMessage(message) {
       item.append(peerBox);
     }
   }
-
-  const footer = createMessageFooter(message);
-  if (footer) item.append(footer);
 
   els.messages.append(item);
   state.messageElements.set(message.id, item);
@@ -2025,6 +2043,101 @@ function createMessageFooter(message) {
   return footer;
 }
 
+function createMessageReactionArea(message) {
+  const activeReactions = Array.isArray(message.reactions) ? message.reactions : [];
+  const isMine = message.senderId === state.clientId;
+  const hasActiveReactions = activeReactions.some((reaction) => Number(reaction.count || 0) > 0);
+  if (isMine && !hasActiveReactions) return null;
+
+  const area = document.createElement("div");
+  area.className = `message-reaction-area${isMine ? " summary-only" : ""}`;
+  area.dataset.messageId = message.id || "";
+  area.addEventListener("click", (event) => event.stopPropagation());
+  area.addEventListener("keydown", (event) => event.stopPropagation());
+
+  const visibleOptions = isMine
+    ? reactionOptions.filter((option) => reactionById(activeReactions, option.id)?.count > 0)
+    : reactionOptions;
+
+  for (const option of visibleOptions) {
+    const reaction = reactionById(activeReactions, option.id);
+    const count = Number(reaction?.count || 0);
+    const selected = Boolean(reaction?.reactedBy?.includes(state.clientId));
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `message-reaction-button${selected ? " selected" : ""}${count > 0 ? " has-count" : ""}`;
+    button.textContent = count > 0 ? `${option.emoji} ${count}` : option.emoji;
+    button.title = option.emoji;
+    button.setAttribute("aria-label", option.emoji);
+    button.disabled = isMine;
+    if (!isMine) {
+      button.addEventListener("click", () => toggleMessageReaction(message.id, option.id));
+    }
+    area.append(button);
+  }
+
+  return area.childElementCount > 0 ? area : null;
+}
+
+function reactionById(reactions, id) {
+  return reactions.find((reaction) => reaction.id === id);
+}
+
+async function toggleMessageReaction(messageId, reactionId) {
+  if (!messageId || !reactionId) return;
+  try {
+    const response = await fetch("/api/message/reaction", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        room: state.room,
+        clientId: state.clientId,
+        roomAccessToken: state.roomAccessToken,
+        messageId,
+        reactionId
+      })
+    });
+    if (!response.ok) setStatusKey("sendFailed", "demo");
+  } catch {
+    setStatusKey("sendFailed", "demo");
+  }
+}
+
+function updateMessageReactions(payload) {
+  const item = state.messageElements.get(payload.messageId);
+  const message = state.messageData.get(payload.messageId);
+  if (!item || !message || item.classList.contains("recalled")) return;
+
+  message.reactions = Array.isArray(payload.reactions) ? payload.reactions : [];
+  state.messageData.set(payload.messageId, message);
+
+  const previous = item.querySelector(".message-reaction-area");
+  const next = createMessageReactionArea(message);
+  if (previous && next) {
+    previous.replaceWith(next);
+  } else if (previous) {
+    previous.remove();
+  } else if (next) {
+    insertReactionArea(item, next);
+  }
+}
+
+function insertReactionArea(item, reactionArea) {
+  const footer = item.querySelector(".message-footer");
+  if (footer) {
+    footer.after(reactionArea);
+    return;
+  }
+
+  const peerBox = item.querySelector(".message-peer-box");
+  if (peerBox) {
+    peerBox.before(reactionArea);
+    return;
+  }
+
+  item.append(reactionArea);
+}
+
 function readStatusText(readStatus = {}) {
   const count = Number(readStatus.readCount || 0);
   const total = Number(readStatus.totalRecipients || 0);
@@ -2079,6 +2192,7 @@ async function recallMessage(messageId) {
 
 function markMessageRecalled(payload) {
   const item = state.messageElements.get(payload.messageId);
+  state.messageData.delete(payload.messageId);
   if (item) {
     renderRecalledMessage(item, {
       id: payload.messageId,
