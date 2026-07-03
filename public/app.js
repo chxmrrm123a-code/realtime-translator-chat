@@ -2048,11 +2048,12 @@ function createMessageFooter(message) {
 
 function createMessageReactionArea(message) {
   const activeReactions = Array.isArray(message.reactions) ? message.reactions : [];
+  const isMine = message.senderId === state.clientId;
   const hasActiveReactions = activeReactions.some((reaction) => Number(reaction.count || 0) > 0);
   if (!hasActiveReactions) return null;
 
   const area = document.createElement("div");
-  area.className = "message-reaction-area";
+  area.className = `message-reaction-area${isMine ? " summary-only" : ""}`;
   area.dataset.messageId = message.id || "";
   area.addEventListener("click", (event) => event.stopPropagation());
   area.addEventListener("keydown", (event) => event.stopPropagation());
@@ -2069,7 +2070,11 @@ function createMessageReactionArea(message) {
     button.textContent = `${option.emoji} ${count}`;
     button.title = option.emoji;
     button.setAttribute("aria-label", option.emoji);
-    button.addEventListener("click", () => toggleMessageReaction(message.id, option.id));
+    if (isMine) {
+      button.disabled = true;
+    } else {
+      button.addEventListener("click", () => toggleMessageReaction(message.id, option.id));
+    }
     area.append(button);
   }
 
@@ -2097,6 +2102,11 @@ function createMessageHoverActions(message, item) {
     event.stopPropagation();
     selectReplyTarget(message, item);
   });
+
+  if (message.senderId === state.clientId) {
+    container.append(replyBtn);
+    return container;
+  }
 
   // 2. React button (with smiley-plus face icon)
   const reactBtn = document.createElement("button");
@@ -2127,7 +2137,7 @@ function createMessageHoverActions(message, item) {
     emojiBtn.addEventListener("click", (event) => {
       event.stopPropagation();
       toggleMessageReaction(message.id, option.id);
-      popover.classList.remove("active");
+      closeReactionPopovers();
     });
     popover.append(emojiBtn);
   }
@@ -2138,9 +2148,14 @@ function createMessageHoverActions(message, item) {
   reactBtn.addEventListener("click", (event) => {
     event.stopPropagation();
     const wasActive = popover.classList.contains("active");
-    document.querySelectorAll(".reaction-popover.active").forEach((el) => el.classList.remove("active"));
+    closeReactionPopovers(popover);
     if (!wasActive) {
+      item.classList.add("reaction-open");
       popover.classList.add("active");
+      reactBtn.setAttribute("aria-expanded", "true");
+    } else {
+      item.classList.remove("reaction-open");
+      reactBtn.setAttribute("aria-expanded", "false");
     }
   });
 
@@ -2150,8 +2165,19 @@ function createMessageHoverActions(message, item) {
 
 // Global click handler to dismiss reaction popovers
 document.addEventListener("click", () => {
-  document.querySelectorAll(".reaction-popover.active").forEach((el) => el.classList.remove("active"));
+  closeReactionPopovers();
 });
+
+function closeReactionPopovers(exceptPopover = null) {
+  document.querySelectorAll(".reaction-popover.active").forEach((popover) => {
+    if (popover === exceptPopover) return;
+    popover.classList.remove("active");
+    const message = popover.closest(".message");
+    if (message) message.classList.remove("reaction-open");
+    const button = popover.closest(".react-btn");
+    if (button) button.setAttribute("aria-expanded", "false");
+  });
+}
 
 function reactionById(reactions, id) {
   return reactions.find((reaction) => reaction.id === id);
@@ -2171,7 +2197,14 @@ async function toggleMessageReaction(messageId, reactionId) {
         reactionId
       })
     });
-    if (!response.ok) setStatusKey("sendFailed", "demo");
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setStatusKey("sendFailed", "demo");
+      return;
+    }
+    if (Array.isArray(payload.reactions)) {
+      updateMessageReactions({ messageId, reactions: payload.reactions });
+    }
   } catch {
     setStatusKey("sendFailed", "demo");
   }
