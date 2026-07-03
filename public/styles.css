@@ -872,8 +872,8 @@ svg {
 }
 
 .message-original {
-  margin: 4px 0 0;
-  padding-top: 4px;
+  margin: 2px 0 0;
+  padding-top: 2px;
   border-top: 1px solid rgba(98, 112, 132, 0.12);
   color: var(--muted);
   white-space: pre-wrap;
@@ -940,10 +940,16 @@ svg {
   justify-content: flex-end;
   align-items: center;
   gap: 6px;
-  margin-top: 2px;
+  margin-top: 0;
   color: var(--muted);
   font-size: 0.74rem;
   font-weight: 850;
+  line-height: 1.15;
+}
+
+.message-text + .message-footer,
+.message-original + .message-footer {
+  margin-top: -1px;
 }
 
 .message-read-status {
@@ -977,7 +983,7 @@ svg {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  margin-top: 7px;
+  margin-top: 5px;
 }
 
 .message-reaction-area.summary-only {
@@ -1270,7 +1276,8 @@ svg {
 }
 
 .message:hover .message-actions-hover,
-.message:focus-within .message-actions-hover {
+.message:focus-within .message-actions-hover,
+.message.reaction-open .message-actions-hover {
   opacity: 1;
   pointer-events: auto;
 }
@@ -1318,10 +1325,9 @@ svg {
   z-index: 20;
 }
 
-/* Show on hover of react-btn or when class active is present */
-.react-btn:hover .reaction-popover,
-.react-btn:focus-within .reaction-popover,
-.reaction-popover.active {
+/* Show only after the reaction button is clicked, so it does not vanish on mouse move. */
+.reaction-popover.active,
+.message.reaction-open .reaction-popover {
   opacity: 1;
   pointer-events: auto;
   transform: translateX(-50%) translateY(0);
