@@ -872,9 +872,9 @@ svg {
 }
 
 .message-original {
-  margin: 8px 0 0;
-  padding-top: 8px;
-  border-top: 1px solid rgba(98, 112, 132, 0.18);
+  margin: 4px 0 0;
+  padding-top: 4px;
+  border-top: 1px solid rgba(98, 112, 132, 0.12);
   color: var(--muted);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -914,9 +914,9 @@ svg {
 }
 
 .message-peer-box {
-  margin: 8px 0 0;
-  padding-top: 8px;
-  border-top: 1px solid rgba(37, 99, 235, 0.18);
+  margin: 4px 0 0;
+  padding-top: 4px;
+  border-top: 1px solid rgba(37, 99, 235, 0.12);
 }
 
 .message-peer-label {
@@ -940,7 +940,7 @@ svg {
   justify-content: flex-end;
   align-items: center;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--muted);
   font-size: 0.74rem;
   font-weight: 850;
@@ -1219,4 +1219,126 @@ svg {
     flex-wrap: wrap;
     justify-content: flex-end;
   }
+
+  /* Mobile positioning of hover actions to prevent overflow */
+  .message-actions-hover {
+    top: -28px;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  
+  .message.mine .message-actions-hover {
+    left: auto;
+    right: 0;
+  }
+  
+  .message:not(.mine) .message-actions-hover {
+    right: auto;
+    left: 0;
+  }
+}
+
+/* Hover action container for message */
+.message {
+  position: relative; /* Anchor for absolute positioning of actions */
+}
+
+.message-actions-hover {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #e2e8f0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 4px 12px rgba(31, 42, 68, 0.1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 10;
+}
+
+.message.mine .message-actions-hover {
+  left: -75px;
+}
+
+.message:not(.mine) .message-actions-hover {
+  right: -75px;
+}
+
+.message:hover .message-actions-hover,
+.message:focus-within .message-actions-hover {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.message-action-btn {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: #475569;
+  transition: background 0.1s, color 0.1s;
+  position: relative;
+}
+
+.message-action-btn:hover {
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--ink);
+}
+
+.message-action-btn svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2.2;
+}
+
+/* Reaction popover styling */
+.reaction-popover {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  display: flex;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 8px;
+  box-shadow: 0 6px 18px rgba(31, 42, 68, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 20;
+}
+
+/* Show on hover of react-btn or when class active is present */
+.react-btn:hover .reaction-popover,
+.react-btn:focus-within .reaction-popover,
+.reaction-popover.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.reaction-emoji-btn {
+  border: 0;
+  background: transparent;
+  font-size: 1.25rem;
+  padding: 3px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reaction-emoji-btn:hover {
+  transform: scale(1.3);
 }
