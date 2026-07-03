@@ -1983,9 +1983,6 @@ function renderMessage(message) {
     }
   }
 
-  const hoverActions = createMessageHoverActions(message, item);
-  item.append(hoverActions);
-
   els.messages.append(item);
   state.messageElements.set(message.id, item);
   if (message.senderId !== state.clientId) scheduleReadReceipt(message.id);
@@ -2050,7 +2047,7 @@ function createMessageReactionArea(message) {
   const activeReactions = Array.isArray(message.reactions) ? message.reactions : [];
   const isMine = message.senderId === state.clientId;
   const hasActiveReactions = activeReactions.some((reaction) => Number(reaction.count || 0) > 0);
-  if (!hasActiveReactions) return null;
+  if (isMine && !hasActiveReactions) return null;
 
   const area = document.createElement("div");
   area.className = `message-reaction-area${isMine ? " summary-only" : ""}`;
@@ -2078,104 +2075,61 @@ function createMessageReactionArea(message) {
     area.append(button);
   }
 
+  if (!isMine) {
+    const picker = document.createElement("div");
+    picker.className = "message-reaction-picker";
+
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "message-reaction-picker-button";
+    trigger.textContent = "🙂 반응";
+    trigger.title = "반응";
+    trigger.setAttribute("aria-label", "반응");
+    trigger.setAttribute("aria-expanded", "false");
+
+    const menu = document.createElement("div");
+    menu.className = "message-reaction-picker-menu";
+
+    for (const option of reactionOptions) {
+      const emojiButton = document.createElement("button");
+      emojiButton.type = "button";
+      emojiButton.className = "message-reaction-option";
+      emojiButton.textContent = option.emoji;
+      emojiButton.title = option.emoji;
+      emojiButton.setAttribute("aria-label", option.emoji);
+      emojiButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        toggleMessageReaction(message.id, option.id);
+        closeReactionPickers();
+      });
+      menu.append(emojiButton);
+    }
+
+    trigger.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const wasOpen = picker.classList.contains("open");
+      closeReactionPickers(picker);
+      picker.classList.toggle("open", !wasOpen);
+      trigger.setAttribute("aria-expanded", String(!wasOpen));
+    });
+
+    picker.append(trigger, menu);
+    area.append(picker);
+  }
+
   return area.childElementCount > 0 ? area : null;
 }
 
-function createMessageHoverActions(message, item) {
-  const container = document.createElement("div");
-  container.className = "message-actions-hover";
-  container.addEventListener("click", (event) => event.stopPropagation());
-  container.addEventListener("keydown", (event) => event.stopPropagation());
-
-  // 1. Reply button
-  const replyBtn = document.createElement("button");
-  replyBtn.type = "button";
-  replyBtn.className = "message-action-btn reply-btn";
-  setButtonLabel(replyBtn, t("replyToMessage"));
-  replyBtn.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="9 17 4 12 9 7"></polyline>
-      <path d="M20 18v-3a4 4 0 0 0-4-4H4"></path>
-    </svg>
-  `;
-  replyBtn.addEventListener("click", (event) => {
-    event.stopPropagation();
-    selectReplyTarget(message, item);
-  });
-
-  if (message.senderId === state.clientId) {
-    container.append(replyBtn);
-    return container;
-  }
-
-  // 2. React button (with smiley-plus face icon)
-  const reactBtn = document.createElement("button");
-  reactBtn.type = "button";
-  reactBtn.className = "message-action-btn react-btn";
-  setButtonLabel(reactBtn, "Add Reaction");
-  reactBtn.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"></circle>
-      <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-      <line x1="9" y1="9" x2="9.01" y2="9"></line>
-      <line x1="15" y1="9" x2="15.01" y2="9"></line>
-      <line x1="19" y1="19" x2="19" y2="15"></line>
-      <line x1="17" y1="17" x2="21" y2="17"></line>
-    </svg>
-  `;
-
-  // Create reaction popover
-  const popover = document.createElement("div");
-  popover.className = "reaction-popover";
-
-  for (const option of reactionOptions) {
-    const emojiBtn = document.createElement("button");
-    emojiBtn.type = "button";
-    emojiBtn.className = "reaction-emoji-btn";
-    emojiBtn.textContent = option.emoji;
-    emojiBtn.title = option.emoji;
-    emojiBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      toggleMessageReaction(message.id, option.id);
-      closeReactionPopovers();
-    });
-    popover.append(emojiBtn);
-  }
-
-  reactBtn.append(popover);
-
-  // Toggle popover on click (for mobile support / click behaviour)
-  reactBtn.addEventListener("click", (event) => {
-    event.stopPropagation();
-    const wasActive = popover.classList.contains("active");
-    closeReactionPopovers(popover);
-    if (!wasActive) {
-      item.classList.add("reaction-open");
-      popover.classList.add("active");
-      reactBtn.setAttribute("aria-expanded", "true");
-    } else {
-      item.classList.remove("reaction-open");
-      reactBtn.setAttribute("aria-expanded", "false");
-    }
-  });
-
-  container.append(replyBtn, reactBtn);
-  return container;
-}
-
-// Global click handler to dismiss reaction popovers
 document.addEventListener("click", () => {
-  closeReactionPopovers();
+  closeReactionPickers();
 });
 
-function closeReactionPopovers(exceptPopover = null) {
-  document.querySelectorAll(".reaction-popover.active").forEach((popover) => {
-    if (popover === exceptPopover) return;
-    popover.classList.remove("active");
-    const message = popover.closest(".message");
-    if (message) message.classList.remove("reaction-open");
-    const button = popover.closest(".react-btn");
-    if (button) button.setAttribute("aria-expanded", "false");
+function closeReactionPickers(exceptPicker = null) {
+  document.querySelectorAll(".message-reaction-picker.open").forEach((picker) => {
+    if (picker === exceptPicker) return;
+    picker.classList.remove("open");
+    const trigger = picker.querySelector(".message-reaction-picker-button");
+    if (trigger) trigger.setAttribute("aria-expanded", "false");
   });
 }
 
