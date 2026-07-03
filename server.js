@@ -1267,6 +1267,8 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
       context,
       translationGuide
     });
+
+    // 1st retry (Attempt 2)
     if (
       shouldRetryUnchangedTranslation(text, translated, sourceLanguage, targetLanguage) ||
       shouldRetrySourceScriptTranslation(text, translated, sourceLanguage, targetLanguage)
@@ -1277,8 +1279,26 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
         targetLanguage,
         context,
         translationGuide,
-        forceDifferent: true
+        forceDifferent: true,
+        temperature: 0.3
       });
+
+      // 2nd retry (Attempt 3)
+      if (
+        shouldRetryUnchangedTranslation(text, translated, sourceLanguage, targetLanguage) ||
+        shouldRetrySourceScriptTranslation(text, translated, sourceLanguage, targetLanguage)
+      ) {
+        translated = await translateWithOpenAI({
+          text,
+          sourceLanguage,
+          targetLanguage,
+          context,
+          translationGuide,
+          forceDifferent: true,
+          temperature: 0.6,
+          extraPrompt: "CRITICAL: The previous translation attempts failed because they returned text identical to the source language or script. You MUST translate the message to the target language. Do not output the source language."
+        });
+      }
     }
     return { text: translated, provider: "openai" };
   } catch (error) {
@@ -1297,7 +1317,9 @@ async function translateWithOpenAI({
   targetLanguage,
   context,
   translationGuide,
-  forceDifferent = false
+  forceDifferent = false,
+  temperature = 0,
+  extraPrompt = ""
 }) {
   const model = getTranslationModel();
   const guide = normalizeTranslationGuide(translationGuide);
@@ -1311,6 +1333,9 @@ async function translateWithOpenAI({
         "Do not output the full source-language sentence unchanged."
       ]
     : [];
+  if (extraPrompt) {
+    retryInstructions.push(extraPrompt);
+  }
   const prompt = [
     `Source language: ${languages[sourceLanguage]}.`,
     `Target language: ${languages[targetLanguage]}.`,
@@ -1355,7 +1380,7 @@ async function translateWithOpenAI({
           content: prompt
         }
       ],
-      temperature: 0
+      temperature: temperature
     })
   });
 
@@ -1420,7 +1445,7 @@ function sourceLanguageScriptShare(value, sourceLanguage) {
 
 function countSourceScriptLetters(value, sourceLanguage) {
   if (sourceLanguage === "ko") return value.match(/\p{Script=Hangul}/gu)?.length || 0;
-  if (sourceLanguage === "ja") return value.match(/[\u3040-\u30ff]/gu)?.length || 0;
+  if (sourceLanguage === "ja") return value.match(/[\u3040-\u30ff\u3400-\u9fff]/gu)?.length || 0;
   if (sourceLanguage === "zh") return value.match(/[\u3400-\u9fff]/gu)?.length || 0;
   if (sourceLanguage === "en" || sourceLanguage === "vi") return value.match(/[A-Za-zÀ-ỹ]/gu)?.length || 0;
   return value.match(/\p{L}/gu)?.length || 0;
