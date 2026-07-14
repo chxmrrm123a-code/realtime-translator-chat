@@ -946,7 +946,7 @@ async function handleEvents(req, res, url) {
     client: { id, name, language, languageName: localNames[language] },
     roomSettings: serializeRoom(room),
     isOwner: room.ownerId === id,
-    aiEnabled: Boolean(process.env.OPENAI_API_KEY)
+    aiEnabled: isAiEnabled()
   });
   broadcastPresence(room);
   deliverHistoryToClient(room, client).catch((error) => {
@@ -1255,12 +1255,13 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
     return { text, provider: "original" };
   }
 
-  if (!process.env.OPENAI_API_KEY) {
+  const provider = getAiProvider();
+  if (!provider) {
     return { text: demoTranslate(text, targetLanguage), provider: "demo" };
   }
 
   try {
-    let translated = await translateWithOpenAI({
+    let translated = await translateWithAi({
       text,
       sourceLanguage,
       targetLanguage,
@@ -1273,7 +1274,7 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
       shouldRetryUnchangedTranslation(text, translated, sourceLanguage, targetLanguage) ||
       shouldRetrySourceScriptTranslation(text, translated, sourceLanguage, targetLanguage)
     ) {
-      translated = await translateWithOpenAI({
+      translated = await translateWithAi({
         text,
         sourceLanguage,
         targetLanguage,
@@ -1288,7 +1289,7 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
         shouldRetryUnchangedTranslation(text, translated, sourceLanguage, targetLanguage) ||
         shouldRetrySourceScriptTranslation(text, translated, sourceLanguage, targetLanguage)
       ) {
-        translated = await translateWithOpenAI({
+        translated = await translateWithAi({
           text,
           sourceLanguage,
           targetLanguage,
@@ -1300,7 +1301,7 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
         });
       }
     }
-    return { text: translated, provider: "openai" };
+    return { text: translated, provider };
   } catch (error) {
     console.error("AI translation failed:", error);
     return {
@@ -1309,6 +1310,22 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
       error: "AI translation failed; demo translation shown."
     };
   }
+}
+
+function getAiProvider() {
+  if (String(process.env.ANTHROPIC_API_KEY || "").trim()) return "anthropic";
+  if (String(process.env.OPENAI_API_KEY || "").trim()) return "openai";
+  return "";
+}
+
+function isAiEnabled() {
+  return Boolean(getAiProvider());
+}
+
+function translateWithAi(options) {
+  return getAiProvider() === "anthropic"
+    ? translateWithClaude(options)
+    : translateWithOpenAI(options);
 }
 
 async function translateWithOpenAI({
@@ -1322,6 +1339,106 @@ async function translateWithOpenAI({
   extraPrompt = ""
 }) {
   const model = getTranslationModel();
+  const prompt = buildTranslationPrompt({
+    text,
+    sourceLanguage,
+    targetLanguage,
+    context,
+    translationGuide,
+    forceDifferent,
+    extraPrompt
+  });
+
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      input: [
+        {
+          role: "system",
+          content: "You are a precise real-time chat translation engine."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`OpenAI API ${response.status}: ${errorText.slice(0, 500)}`);
+  }
+
+  const data = await response.json();
+  const outputText = extractResponseText(data).trim();
+  if (!outputText) throw new Error("Empty OpenAI translation response.");
+  return outputText.slice(0, 4_000);
+}
+
+async function translateWithClaude({
+  text,
+  sourceLanguage,
+  targetLanguage,
+  context,
+  translationGuide,
+  forceDifferent = false,
+  temperature = 0,
+  extraPrompt = ""
+}) {
+  const model = getClaudeTranslationModel();
+  const prompt = buildTranslationPrompt({
+    text,
+    sourceLanguage,
+    targetLanguage,
+    context,
+    translationGuide,
+    forceDifferent,
+    extraPrompt
+  });
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": process.env.ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 4096,
+      system: "You are a precise real-time chat translation engine.",
+      messages: [{ role: "user", content: prompt }],
+      temperature
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Anthropic API ${response.status}: ${errorText.slice(0, 500)}`);
+  }
+
+  const data = await response.json();
+  const outputText = extractClaudeResponseText(data).trim();
+  if (!outputText) throw new Error("Empty Claude translation response.");
+  return outputText.slice(0, 4_000);
+}
+
+function buildTranslationPrompt({
+  text,
+  sourceLanguage,
+  targetLanguage,
+  context,
+  translationGuide,
+  forceDifferent = false,
+  extraPrompt = ""
+}) {
   const guide = normalizeTranslationGuide(translationGuide);
   const recentContext = context
     .map((item) => `${languages[item.sourceLanguage]} ${item.senderName}: ${item.text}`)
@@ -1361,38 +1478,7 @@ async function translateWithOpenAI({
     text,
     "</message_to_translate>"
   ].join("\n");
-
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      "content-type": "application/json"
-    },
-    body: JSON.stringify({
-      model,
-      input: [
-        {
-          role: "system",
-          content: "You are a precise real-time chat translation engine."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: temperature
-    })
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`OpenAI API ${response.status}: ${errorText.slice(0, 500)}`);
-  }
-
-  const data = await response.json();
-  const outputText = extractResponseText(data).trim();
-  if (!outputText) throw new Error("Empty AI translation response.");
-  return outputText.slice(0, 4_000);
+  return prompt;
 }
 
 function shouldRetryUnchangedTranslation(sourceText, translatedText, sourceLanguage, targetLanguage) {
@@ -1466,6 +1552,11 @@ function getTranslationModel() {
   return model;
 }
 
+function getClaudeTranslationModel() {
+  const model = String(process.env.ANTHROPIC_TRANSLATION_MODEL || "").trim();
+  return model || "claude-haiku-4-5";
+}
+
 function extractResponseText(data) {
   if (typeof data.output_text === "string") return data.output_text;
 
@@ -1476,6 +1567,13 @@ function extractResponseText(data) {
     }
   }
   return chunks.join("\n");
+}
+
+function extractClaudeResponseText(data) {
+  return (data.content || [])
+    .filter((content) => content?.type === "text" && typeof content.text === "string")
+    .map((content) => content.text)
+    .join("\n");
 }
 
 function demoTranslate(text, targetLanguage) {
@@ -1527,7 +1625,8 @@ const server = createServer(async (req, res) => {
       rooms: rooms.size,
       roomCapacity,
       roomHistoryLimit,
-      aiEnabled: Boolean(process.env.OPENAI_API_KEY),
+      aiEnabled: isAiEnabled(),
+      aiProvider: getAiProvider(),
       pushEnabled: Boolean(vapidKeys?.publicKey),
       pushSubscriptions: pushSubscriptions.size
     });

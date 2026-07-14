@@ -2576,7 +2576,7 @@ function setStatus(text, className) {
 }
 
 function providerLabel(provider) {
-  if (provider === "openai") return "AI";
+  if (provider === "openai" || provider === "anthropic") return "AI";
   if (provider === "original") return t("original");
   return t("demo");
 }
