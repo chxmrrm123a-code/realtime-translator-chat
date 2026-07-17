@@ -3,6 +3,7 @@ FROM node:22-alpine
 WORKDIR /app
 COPY package.json ./
 COPY server.js ./
+COPY chat-store.js ./
 COPY public ./public
 
 ENV HOST=0.0.0.0
