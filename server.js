@@ -1866,6 +1866,33 @@ async function serveStatic(req, res, url) {
   }
 }
 
+function serveAppRecovery(res, url) {
+  const nextPath = String(url.searchParams.get("next") || "/");
+  const safeNextPath = nextPath.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/";
+  const encodedNextPath = JSON.stringify(safeNextPath).replace(/</g, "\\u003c");
+  const body = `<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TRIO 업데이트</title></head>
+<body><p>TRIO를 최신 버전으로 업데이트하는 중입니다...</p>
+<script>
+(async () => {
+  const registrations = await navigator.serviceWorker?.getRegistrations?.() || [];
+  await Promise.all(registrations.map((registration) => registration.unregister()));
+  if ("caches" in window) {
+    const names = await caches.keys();
+    await Promise.all(names.filter((name) => name.startsWith("trio-app-shell-")).map((name) => caches.delete(name)));
+  }
+  location.replace(${encodedNextPath});
+})().catch(() => location.replace(${encodedNextPath}));
+</script></body></html>`;
+
+  res.writeHead(200, {
+    "content-type": "text/html; charset=utf-8",
+    "cache-control": "no-store, max-age=0"
+  });
+  res.end(body);
+}
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
 
@@ -1889,6 +1916,11 @@ const server = createServer(async (req, res) => {
       pushEnabled: Boolean(vapidKeys?.publicKey),
       pushSubscriptions: pushSubscriptions.size
     });
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/recover") {
+    serveAppRecovery(res, url);
     return;
   }
 

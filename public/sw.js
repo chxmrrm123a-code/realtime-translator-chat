@@ -40,12 +40,30 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       caches.match("/").then((cached) => cached || fetch(request))
     );
+    event.waitUntil(
+      fetch("/", { cache: "no-store" })
+        .then(async (response) => {
+          if (!response.ok) return;
+          const cache = await caches.open(APP_SHELL_CACHE);
+          await cache.put("/", response.clone());
+          await cache.put("/index.html", response);
+        })
+        .catch(() => {})
+    );
     return;
   }
 
   if (APP_SHELL_FILES.includes(url.pathname)) {
     event.respondWith(
-      caches.match(request).then((cached) => cached || fetch(request))
+      fetch(request, { cache: "no-store" })
+        .then(async (response) => {
+          if (response.ok) {
+            const cache = await caches.open(APP_SHELL_CACHE);
+            await cache.put(request, response.clone());
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
     );
   }
 });
@@ -54,7 +72,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(showPendingNotification());
 });
 
-const APP_SHELL_CACHE = "trio-app-shell-v3";
+const APP_SHELL_CACHE = "trio-app-shell-v4";
 const APP_SHELL_FILES = ["/", "/index.html", "/styles.css", "/app.js", "/manifest.webmanifest"];
 
 self.addEventListener("notificationclick", (event) => {
