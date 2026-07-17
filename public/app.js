@@ -911,6 +911,9 @@ if (roomFromPath()) {
 
 applyUiLanguage();
 initializeNotifications();
+registerAppShell().catch((error) => {
+  console.warn("App shell registration failed:", error);
+});
 
 async function joinRoom() {
   state.room = normalizeRoom(els.roomInput.value);
@@ -1041,7 +1044,7 @@ async function translateSentence(event) {
   });
 
   try {
-    const response = await fetch("/api/sentence-translate", {
+    const response = await fetchWithTimeout("/api/sentence-translate", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -1050,7 +1053,7 @@ async function translateSentence(event) {
         targetLanguage,
         translationGuide: els.sentenceGuideInput.value
       })
-    });
+    }, 25_000);
     const payload = await response.json().catch(() => ({}));
     if (!response.ok || !payload.ok) throw new Error("Sentence translation failed");
     setSentenceResult({
@@ -1461,10 +1464,27 @@ async function syncPushSubscriptionIfAllowed() {
 }
 
 async function getServiceWorkerRegistration() {
-  const existing = await navigator.serviceWorker.getRegistration("/");
-  if (existing) return existing;
-  await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+  return registerAppShell();
+}
+
+async function registerAppShell() {
+  if (!("serviceWorker" in navigator) || !window.isSecureContext) return null;
+  const registration = await navigator.serviceWorker.register("/sw.js", {
+    scope: "/",
+    updateViaCache: "none"
+  });
+  registration.update().catch(() => {});
   return navigator.serviceWorker.ready;
+}
+
+async function fetchWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    window.clearTimeout(timeout);
+  }
 }
 
 async function savePushSubscription(subscription) {
