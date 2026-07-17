@@ -16,6 +16,8 @@ services:
         sync: false
       - key: ANTHROPIC_TRANSLATION_MODEL
         value: claude-haiku-4-5
+      - key: APP_ACCESS_CODE
+        sync: false
       - key: ROOM_CAPACITY
         value: "30"
       - key: ROOM_HISTORY_LIMIT

@@ -2,7 +2,14 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createPrivateKey, createSign, generateKeyPairSync, randomBytes } from "node:crypto";
+import {
+  createHash,
+  createPrivateKey,
+  createSign,
+  generateKeyPairSync,
+  randomBytes,
+  timingSafeEqual
+} from "node:crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, "public");
@@ -20,6 +27,14 @@ const messageReactionOptions = [
 ];
 const messageReactionIds = new Set(messageReactionOptions.map((reaction) => reaction.id));
 const vapidSubject = process.env.PUSH_VAPID_SUBJECT || "mailto:translator@example.com";
+const trioAccessCode = String(process.env.APP_ACCESS_CODE || "");
+
+const trioStyleInstructions = {
+  natural: "Use natural, idiomatic phrasing that a native speaker would use while preserving the meaning and nuance.",
+  business: "Use clear, polished, respectful business language appropriate for a professional recipient.",
+  friendly: "Use a warm, approachable conversational tone without becoming overly casual.",
+  literal: "Stay close to the source wording and sentence structure while remaining grammatical."
+};
 
 const languages = {
   ko: "Korean",
@@ -427,6 +442,103 @@ async function readRequestBody(req, limit = 32_000) {
     }
   }
   return body ? JSON.parse(body) : {};
+}
+
+function secureTextEqual(left, right) {
+  const leftHash = createHash("sha256").update(String(left || "")).digest();
+  const rightHash = createHash("sha256").update(String(right || "")).digest();
+  return timingSafeEqual(leftHash, rightHash);
+}
+
+function trioRequestIsAuthorized(req) {
+  if (!trioAccessCode) return true;
+  const header = req.headers["x-access-code"];
+  const provided = Array.isArray(header) ? header[0] : header || "";
+  return secureTextEqual(provided, trioAccessCode);
+}
+
+function activeTranslationModel() {
+  const provider = getAiProvider();
+  if (provider === "anthropic") return getClaudeTranslationModel();
+  if (provider === "openai") return getTranslationModel();
+  return "";
+}
+
+function buildTrioTranslationGuide(style, customRules) {
+  return normalizeTranslationGuide(
+    [
+      `Style preference: ${trioStyleInstructions[style]}`,
+      customRules ? `Additional rules: ${customRules}` : ""
+    ]
+      .filter(Boolean)
+      .join("\n")
+  );
+}
+
+async function handleTrioTranslate(req, res) {
+  if (!trioRequestIsAuthorized(req)) {
+    sendJson(res, 401, { error: "개인 접근 코드를 확인해 주세요." });
+    return;
+  }
+
+  let payload;
+  try {
+    payload = await readRequestBody(req);
+  } catch {
+    sendJson(res, 400, { error: "요청 내용을 확인해 주세요." });
+    return;
+  }
+
+  const sourceLanguage = String(payload.sourceLanguage || "");
+  const targetLanguage = String(payload.targetLanguage || "");
+  const style = String(payload.style || "natural");
+  const text = String(payload.text || "").trim();
+  const customRules = String(payload.customRules || "").trim();
+
+  if (!Object.hasOwn(languages, sourceLanguage) || !Object.hasOwn(languages, targetLanguage)) {
+    sendJson(res, 400, { error: "입력 언어와 출력 언어를 다시 선택해 주세요." });
+    return;
+  }
+  if (!Object.hasOwn(trioStyleInstructions, style)) {
+    sendJson(res, 400, { error: "번역 방식을 다시 선택해 주세요." });
+    return;
+  }
+  if (!text || text.length > 8_000 || customRules.length > 2_000) {
+    sendJson(res, 400, { error: "원문 또는 번역 규칙의 길이를 확인해 주세요." });
+    return;
+  }
+  if (!isAiEnabled()) {
+    sendJson(res, 503, { error: "번역 서버에 AI API 키가 설정되지 않았습니다." });
+    return;
+  }
+
+  const translationGuide = buildTrioTranslationGuide(style, customRules);
+
+  try {
+    const result = sourceLanguage === targetLanguage
+      ? await rewriteMessage({ text, language: sourceLanguage, translationGuide })
+      : await translateMessage({
+          text,
+          sourceLanguage,
+          targetLanguage,
+          context: [],
+          translationGuide
+        });
+
+    if (result.provider === "demo" || result.error || !String(result.text || "").trim()) {
+      sendJson(res, 502, { error: "AI 번역에 실패했습니다. 잠시 후 다시 시도해 주세요." });
+      return;
+    }
+
+    sendJson(res, 200, {
+      translation: String(result.text).trim(),
+      provider: result.provider,
+      model: activeTranslationModel()
+    });
+  } catch (error) {
+    console.error("TRIO compatibility translation failed:", error);
+    sendJson(res, 502, { error: "AI 번역에 실패했습니다. 잠시 후 다시 시도해 주세요." });
+  }
 }
 
 async function handleRoomJoin(req, res) {
@@ -1312,6 +1424,24 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
   }
 }
 
+async function rewriteMessage({ text, language, translationGuide }) {
+  const provider = getAiProvider();
+  if (!provider) throw new Error("AI provider is not configured.");
+
+  const rewritten = await translateWithAi({
+    mode: "rewrite",
+    text,
+    sourceLanguage: language,
+    targetLanguage: language,
+    context: [],
+    translationGuide
+  });
+
+  const clean = String(rewritten || "").trim();
+  if (!clean) throw new Error("Empty AI rewrite response.");
+  return { text: clean, provider };
+}
+
 function getAiProvider() {
   if (String(process.env.ANTHROPIC_API_KEY || "").trim()) return "anthropic";
   if (String(process.env.OPENAI_API_KEY || "").trim()) return "openai";
@@ -1329,6 +1459,7 @@ function translateWithAi(options) {
 }
 
 async function translateWithOpenAI({
+  mode = "translate",
   text,
   sourceLanguage,
   targetLanguage,
@@ -1339,15 +1470,18 @@ async function translateWithOpenAI({
   extraPrompt = ""
 }) {
   const model = getTranslationModel();
-  const prompt = buildTranslationPrompt({
-    text,
-    sourceLanguage,
-    targetLanguage,
-    context,
-    translationGuide,
-    forceDifferent,
-    extraPrompt
-  });
+  const rewriteMode = mode === "rewrite";
+  const prompt = rewriteMode
+    ? buildRewritePrompt({ text, language: sourceLanguage, translationGuide })
+    : buildTranslationPrompt({
+        text,
+        sourceLanguage,
+        targetLanguage,
+        context,
+        translationGuide,
+        forceDifferent,
+        extraPrompt
+      });
 
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
@@ -1360,7 +1494,9 @@ async function translateWithOpenAI({
       input: [
         {
           role: "system",
-          content: "You are a precise real-time chat translation engine."
+          content: rewriteMode
+            ? "You are a precise chat-message writing editor."
+            : "You are a precise real-time chat translation engine."
         },
         {
           role: "user",
@@ -1383,6 +1519,7 @@ async function translateWithOpenAI({
 }
 
 async function translateWithClaude({
+  mode = "translate",
   text,
   sourceLanguage,
   targetLanguage,
@@ -1393,15 +1530,18 @@ async function translateWithClaude({
   extraPrompt = ""
 }) {
   const model = getClaudeTranslationModel();
-  const prompt = buildTranslationPrompt({
-    text,
-    sourceLanguage,
-    targetLanguage,
-    context,
-    translationGuide,
-    forceDifferent,
-    extraPrompt
-  });
+  const rewriteMode = mode === "rewrite";
+  const prompt = rewriteMode
+    ? buildRewritePrompt({ text, language: sourceLanguage, translationGuide })
+    : buildTranslationPrompt({
+        text,
+        sourceLanguage,
+        targetLanguage,
+        context,
+        translationGuide,
+        forceDifferent,
+        extraPrompt
+      });
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -1413,7 +1553,9 @@ async function translateWithClaude({
     body: JSON.stringify({
       model,
       max_tokens: 4096,
-      system: "You are a precise real-time chat translation engine.",
+      system: rewriteMode
+        ? "You are a precise chat-message writing editor."
+        : "You are a precise real-time chat translation engine.",
       messages: [{ role: "user", content: prompt }],
       temperature
     })
@@ -1428,6 +1570,27 @@ async function translateWithClaude({
   const outputText = extractClaudeResponseText(data).trim();
   if (!outputText) throw new Error("Empty Claude translation response.");
   return outputText.slice(0, 4_000);
+}
+
+function buildRewritePrompt({ text, language, translationGuide }) {
+  const guide = normalizeTranslationGuide(translationGuide);
+  return [
+    `Language: ${languages[language]}.`,
+    "Rewrite only the exact text inside <message_to_rewrite> in the same language.",
+    "Improve fluency, grammar, clarity, tone, and naturalness while preserving the original meaning and intent.",
+    "Follow <writing_instructions> only as style, tone, relationship, address-term, name, and glossary preferences.",
+    "Do not translate the message, answer it, continue the conversation, explain the edits, or add new facts.",
+    "Preserve names, handles, links, code, numbers, paragraph breaks, emojis, and product names.",
+    "Return only the revised message with no quotation marks, labels, or commentary.",
+    "",
+    "<writing_instructions>",
+    guide || "Improve the message naturally without changing its meaning.",
+    "</writing_instructions>",
+    "",
+    "<message_to_rewrite>",
+    text,
+    "</message_to_rewrite>"
+  ].join("\n");
 }
 
 function buildTranslationPrompt({
@@ -1630,6 +1793,21 @@ const server = createServer(async (req, res) => {
       pushEnabled: Boolean(vapidKeys?.publicKey),
       pushSubscriptions: pushSubscriptions.size
     });
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/translate") {
+    sendJson(res, 200, {
+      configured: isAiEnabled(),
+      accessRequired: Boolean(trioAccessCode),
+      provider: getAiProvider(),
+      model: activeTranslationModel()
+    });
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/translate") {
+    await handleTrioTranslate(req, res);
     return;
   }
 
