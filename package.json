@@ -5,9 +5,10 @@
   "description": "Mobile-first realtime AI interpreter chat room prototype.",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.13"
   }
 }

@@ -21,4 +21,4 @@ services:
       - key: ROOM_CAPACITY
         value: "30"
       - key: ROOM_HISTORY_LIMIT
-        value: "25"
+        value: "5000"

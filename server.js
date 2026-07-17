@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createChatStore } from "./chat-store.js";
 import {
   createHash,
   createPrivateKey,
@@ -16,7 +17,9 @@ const publicDir = path.join(__dirname, "public");
 const port = Number(process.env.PORT || 4173);
 const host = process.env.HOST || "0.0.0.0";
 const roomCapacity = toBoundedInteger(process.env.ROOM_CAPACITY, 30, 1, 100);
-const roomHistoryLimit = toBoundedInteger(process.env.ROOM_HISTORY_LIMIT, 25, 5, 100);
+const roomHistoryLimit = toBoundedInteger(process.env.ROOM_HISTORY_LIMIT, 5000, 25, 5000);
+const chatDatabasePath =
+  process.env.CHAT_DATABASE_PATH || path.join(__dirname, "data", "trio-chat.sqlite");
 const messageRecallWindowMs = 2 * 60 * 1000;
 const messageReactionOptions = [
   { id: "like", emoji: "👍" },
@@ -66,6 +69,7 @@ const pushSubscriptions = new Map();
 const pendingPushNotifications = new Map();
 const messageTranslationCache = new Map();
 const vapidKeys = createVapidKeys();
+const chatStore = createChatStore(chatDatabasePath);
 
 function toBoundedInteger(value, fallback, min, max) {
   const number = Number(value);
@@ -76,20 +80,27 @@ function toBoundedInteger(value, fallback, min, max) {
 function getRoom(roomCode) {
   const normalized = normalizeRoom(roomCode);
   if (!rooms.has(normalized)) {
-    rooms.set(normalized, {
-      code: normalized,
-      createdAt: Date.now(),
-      lastActive: Date.now(),
-      ownerId: "",
-      title: "",
-      expiresAt: 0,
-      clients: new Map(),
-      history: []
-    });
+    const persisted = chatStore.loadRoom(normalized, roomHistoryLimit);
+    rooms.set(
+      normalized,
+      persisted
+        ? { ...persisted, clients: new Map() }
+        : {
+            code: normalized,
+            createdAt: Date.now(),
+            lastActive: Date.now(),
+            ownerId: "",
+            title: "",
+            expiresAt: 0,
+            clients: new Map(),
+            history: []
+          }
+    );
   }
   const room = rooms.get(normalized);
   ensureRoomDefaults(room);
   room.lastActive = Date.now();
+  chatStore.saveRoom(room);
   return room;
 }
 
@@ -563,7 +574,10 @@ async function handleRoomJoin(req, res) {
     return;
   }
 
-  if (!room.ownerId) room.ownerId = clientId;
+  if (!room.ownerId) {
+    room.ownerId = clientId;
+    chatStore.saveRoom(room);
+  }
 
   sendJson(res, 200, {
     ok: true,
@@ -597,6 +611,7 @@ async function handleRoomSettings(req, res) {
   const expiryMinutes = parseExpiryMinutes(payload.expiryMinutes);
   room.expiresAt = expiryMinutes ? Date.now() + expiryMinutes * 60_000 : 0;
   room.lastActive = Date.now();
+  chatStore.saveRoom(room);
 
   broadcastRoomSettings(room);
   sendJson(res, 200, {
@@ -660,6 +675,7 @@ async function handleMessageRead(req, res) {
       language: client.language,
       readAt: new Date().toISOString()
     };
+    chatStore.saveMessage(message);
     updatedMessages.push(message);
   }
 
@@ -712,8 +728,10 @@ async function handleMessageRecall(req, res) {
     if (item.replyTo?.id === message.id) {
       item.replyTo.text = "";
       item.replyTo.recalledAt = message.recalledAt;
+      chatStore.saveMessage(item);
     }
   }
+  chatStore.saveMessage(message);
 
   broadcastRecall(room, message);
   sendJson(res, 200, { ok: true, recalledAt: message.recalledAt });
@@ -771,6 +789,7 @@ async function handleMessageReaction(req, res) {
     };
   }
 
+  chatStore.saveMessage(message);
   broadcastMessageReaction(room, message);
   sendJson(res, 200, { ok: true, reactions: serializeMessageReactions(message) });
 }
@@ -911,6 +930,11 @@ async function handleRetranslate(req, res) {
     context,
     translationGuide
   });
+  if (!translation.error && translation.provider !== "demo") {
+    const cacheKey = getTranslationCacheKey(message, targetLanguage);
+    messageTranslationCache.set(cacheKey, translation);
+    chatStore.saveTranslation(message.id, targetLanguage, translation);
+  }
 
   sendJson(res, 200, {
     ok: true,
@@ -1051,7 +1075,10 @@ async function handleEvents(req, res, url) {
     ping: setInterval(() => sendSse(client, "ping", { at: Date.now() }), 25_000)
   };
 
-  if (!room.ownerId) room.ownerId = id;
+  if (!room.ownerId) {
+    room.ownerId = id;
+    chatStore.saveRoom(room);
+  }
   room.clients.set(id, client);
   sendSse(client, "connected", {
     room: room.code,
@@ -1166,6 +1193,9 @@ async function handleMessage(req, res) {
 
   const context = room.history.slice(-10);
   room.history.push(message);
+  room.lastActive = Date.now();
+  chatStore.saveRoom(room);
+  chatStore.saveMessage(message);
   trimRoomHistory(room);
 
   deliverMessage(room, message, context).catch((error) => {
@@ -1288,7 +1318,7 @@ function trimRoomHistory(room) {
   if (room.history.length <= roomHistoryLimit) return;
   const removed = room.history.splice(0, room.history.length - roomHistoryLimit);
   for (const message of removed) {
-    deleteTranslationCacheForMessage(message.id);
+    evictTranslationCacheForMessage(message.id);
   }
 }
 
@@ -1296,11 +1326,16 @@ function getTranslationCacheKey(message, targetLanguage) {
   return `${message.id}:${targetLanguage}`;
 }
 
-function deleteTranslationCacheForMessage(messageId) {
+function evictTranslationCacheForMessage(messageId) {
   const prefix = `${messageId}:`;
   for (const key of messageTranslationCache.keys()) {
     if (key.startsWith(prefix)) messageTranslationCache.delete(key);
   }
+}
+
+function deleteTranslationCacheForMessage(messageId) {
+  evictTranslationCacheForMessage(messageId);
+  chatStore.deleteTranslations(messageId);
 }
 
 function createTranslatorForMessage(message, context) {
@@ -1309,8 +1344,11 @@ function createTranslatorForMessage(message, context) {
     const normalizedTargetLanguage = normalizeLanguage(targetLanguage);
     if (!translations.has(normalizedTargetLanguage)) {
       const cacheKey = getTranslationCacheKey(message, normalizedTargetLanguage);
-      const cached = messageTranslationCache.get(cacheKey);
+      const cached =
+        messageTranslationCache.get(cacheKey) ||
+        chatStore.loadTranslation(message.id, normalizedTargetLanguage);
       if (cached) {
+        messageTranslationCache.set(cacheKey, cached);
         translations.set(normalizedTargetLanguage, Promise.resolve(cached));
       } else {
         const translationPromise = translateMessage({
@@ -1322,6 +1360,9 @@ function createTranslatorForMessage(message, context) {
         })
           .then((translation) => {
             messageTranslationCache.set(cacheKey, translation);
+            if (!translation.error && translation.provider !== "demo") {
+              chatStore.saveTranslation(message.id, normalizedTargetLanguage, translation);
+            }
             return translation;
           })
           .catch((error) => {
@@ -1783,9 +1824,13 @@ const server = createServer(async (req, res) => {
   }
 
   if (req.method === "GET" && url.pathname === "/healthz") {
+    const storage = chatStore.stats();
     sendJson(res, 200, {
       ok: true,
       rooms: rooms.size,
+      storedRooms: storage.rooms,
+      storedMessages: storage.messages,
+      persistenceEnabled: true,
       roomCapacity,
       roomHistoryLimit,
       aiEnabled: isAiEnabled(),
@@ -1891,7 +1936,23 @@ const server = createServer(async (req, res) => {
 
 server.listen(port, host, () => {
   console.log(`Realtime translator chat is running at http://localhost:${port}`);
+  console.log(`Persistent chat database: ${chatStore.path}`);
 });
+
+let shuttingDown = false;
+function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`${signal} received. Closing chat database.`);
+  server.close(() => {
+    chatStore.close();
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(1), 10_000).unref();
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
 setInterval(() => {
   const now = Date.now();
@@ -1904,6 +1965,7 @@ setInterval(() => {
         client.res.end();
       }
       rooms.delete(code);
+      chatStore.deleteRoom(code);
       continue;
     }
 
