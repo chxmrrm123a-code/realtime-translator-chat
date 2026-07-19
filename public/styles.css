@@ -857,6 +857,17 @@ svg {
   margin-bottom: 4px;
 }
 
+.message-meta-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.message-time {
+  font-weight: 400;
+  color: #8c9ba5;
+}
+
 .message-text {
   margin: 0;
   white-space: pre-wrap;

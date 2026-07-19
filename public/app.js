@@ -1776,6 +1776,17 @@ function updateRulesFeedback() {
   }
 }
 
+function formatMessageTime(isoString) {
+  if (!isoString) return "";
+  try {
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return "";
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } catch {
+    return "";
+  }
+}
+
 function getPanelRuleValues() {
   return [...els.translationRulesList.querySelectorAll(".rule-input")]
     .map((input) => normalizeRuleText(input.value))
@@ -2025,11 +2036,20 @@ function renderMessage(message) {
     selectReplyTarget(message, item);
   });
 
-  const meta = document.createElement("div");
+    const meta = document.createElement("div");
   meta.className = "message-meta";
+
+  const left = document.createElement("span");
+  left.className = "message-meta-left";
 
   const sender = document.createElement("span");
   sender.textContent = `${message.senderName} · ${languages[message.sourceLanguage]}`;
+
+  const time = document.createElement("span");
+  time.className = "message-time";
+  time.textContent = formatMessageTime(message.createdAt);
+
+  left.append(sender, document.createTextNode(" · "), time);
 
   const provider = document.createElement("span");
   provider.className = `provider${message.translationProvider === "demo" ? " demo" : ""}`;
@@ -2098,11 +2118,22 @@ function renderRecalledMessage(item, message) {
   item.title = "";
   item.replaceChildren();
 
-  const meta = document.createElement("div");
+    const meta = document.createElement("div");
   meta.className = "message-meta";
+
+  const left = document.createElement("span");
+  left.className = "message-meta-left";
+
   const sender = document.createElement("span");
   sender.textContent = message.senderName || "";
-  meta.append(sender);
+
+  const time = document.createElement("span");
+  time.className = "message-time";
+  time.textContent = formatMessageTime(message.createdAt);
+
+  left.append(sender, document.createTextNode(" · "), time);
+
+  meta.append(left);
 
   const recalled = document.createElement("p");
   recalled.className = "message-text recalled-text";
