@@ -2059,7 +2059,7 @@ function renderMessage(message) {
   translated.className = "message-text";
   translated.textContent = message.translatedText;
 
-  meta.append(sender, provider);
+  meta.append(left, provider);
   item.append(meta);
 
   if (message.replyTo) {
