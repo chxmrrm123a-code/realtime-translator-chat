@@ -1781,7 +1781,8 @@ function formatMessageTime(isoString) {
   try {
     const date = new Date(isoString);
     if (isNaN(date.getTime())) return "";
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const locale = state.uiLanguage || state.language || "ko";
+    return date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
   } catch {
     return "";
   }
