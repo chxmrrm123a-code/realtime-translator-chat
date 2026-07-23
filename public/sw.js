@@ -72,7 +72,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(showPendingNotification());
 });
 
-const APP_SHELL_CACHE = "trio-app-shell-v7";
+const APP_SHELL_CACHE = "trio-app-shell-v8";
 const APP_SHELL_FILES = ["/", "/index.html", "/styles.css", "/app.js", "/manifest.webmanifest"];
 
 self.addEventListener("notificationclick", (event) => {
