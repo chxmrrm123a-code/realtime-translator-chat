@@ -1802,7 +1802,7 @@ function sharesPrimaryScript(firstLanguage, secondLanguage) {
 function getTranslationModel() {
   const model = String(process.env.OPENAI_TRANSLATION_MODEL || "").trim();
   if (!model || /audio|transcribe|transcription|tts|whisper/i.test(model)) {
-    return "gpt-4.1-mini";
+    return "gpt-5-mini";
   }
   return model;
 }
