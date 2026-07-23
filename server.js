@@ -1555,7 +1555,7 @@ async function translateWithOpenAI({
         extraPrompt
       });
 
-  const response = await fetchAi("https://api.openai.com/v1/responses", {
+  const response = await fetchAi("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -1563,7 +1563,7 @@ async function translateWithOpenAI({
     },
     body: JSON.stringify({
       model,
-      input: [
+      messages: [
         {
           role: "system",
           content: buildAiSystemPrompt({ rewriteMode, translationGuide })
@@ -1828,6 +1828,9 @@ function getClaudeTranslationModel() {
 }
 
 function extractResponseText(data) {
+  if (data.choices && data.choices[0]?.message?.content) {
+    return data.choices[0].message.content;
+  }
   if (typeof data.output_text === "string") return data.output_text;
 
   const chunks = [];
