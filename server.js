@@ -838,6 +838,7 @@ async function handlePreview(req, res) {
     return;
   }
 
+  const translationMode = payload.translationMode === "precise" ? "precise" : "fast";
   const sourceLanguage = normalizeLanguage(payload.language);
   const translationGuide = normalizeTranslationGuide(payload.translationGuide);
   const targetLanguages = [
@@ -855,6 +856,7 @@ async function handlePreview(req, res) {
   }
 
   const context = room.history.slice(-10);
+  const translationMode = payload.translationMode === "precise" ? "precise" : "fast";
   const previews = await Promise.all(
     targetLanguages.map(async (targetLanguage) => {
       const translation = await translateMessage({
@@ -862,7 +864,8 @@ async function handlePreview(req, res) {
         sourceLanguage,
         targetLanguage,
         context,
-        translationGuide
+        translationGuide,
+        translationMode
       });
       return {
         targetLanguage,
@@ -1192,6 +1195,7 @@ async function handleMessage(req, res) {
     return;
   }
 
+  const translationMode = payload.translationMode === "precise" ? "precise" : "fast";
   const sourceLanguage = normalizeLanguage(payload.language);
   const translationGuide = normalizeTranslationGuide(payload.translationGuide);
   const replyTo = createReplyReference(room, payload.replyToId);
@@ -1207,6 +1211,7 @@ async function handleMessage(req, res) {
     readBy: {},
     reactions: {},
     recalledAt: "",
+    translationMode,
     createdAt: new Date().toISOString()
   };
   Object.defineProperty(message, "translationGuide", {
@@ -1379,7 +1384,8 @@ function createTranslatorForMessage(message, context) {
           sourceLanguage: message.sourceLanguage,
           targetLanguage: normalizedTargetLanguage,
           context,
-          translationGuide: message.translationGuide || ""
+          translationGuide: message.translationGuide || "",
+          translationMode: message.translationMode || "fast"
         })
           .then((translation) => {
             messageTranslationCache.set(cacheKey, translation);
@@ -1426,7 +1432,7 @@ async function getPeerTranslationsForClient(clients, client, message, translateF
   );
 }
 
-async function translateMessage({ text, sourceLanguage, targetLanguage, context, translationGuide }) {
+async function translateMessage({ text, sourceLanguage, targetLanguage, context, translationGuide, translationMode = "fast" }) {
   if (sourceLanguage === targetLanguage) {
     return { text, provider: "original" };
   }
@@ -1442,7 +1448,8 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
       sourceLanguage,
       targetLanguage,
       context,
-      translationGuide
+      translationGuide,
+      translationMode
     });
 
     // 1st retry (Attempt 2)
@@ -1524,6 +1531,7 @@ function translateWithAi(options) {
 
 async function translateWithOpenAI({
   mode = "translate",
+  translationMode = "fast",
   text,
   sourceLanguage,
   targetLanguage,
@@ -1533,7 +1541,7 @@ async function translateWithOpenAI({
   temperature = 0,
   extraPrompt = ""
 }) {
-  const model = getTranslationModel();
+  const model = getTranslationModel(translationMode);
   const rewriteMode = mode === "rewrite";
   const prompt = rewriteMode
     ? buildRewritePrompt({ text, language: sourceLanguage, translationGuide })
@@ -1799,12 +1807,19 @@ function sharesPrimaryScript(firstLanguage, secondLanguage) {
   return hanLanguages.has(firstLanguage) && hanLanguages.has(secondLanguage);
 }
 
-function getTranslationModel() {
-  const model = String(process.env.OPENAI_TRANSLATION_MODEL || "").trim();
-  if (!model || /audio|transcribe|transcription|tts|whisper/i.test(model)) {
+function getTranslationModel(mode = "fast") {
+  if (mode === "precise") {
+    const preciseModel = String(process.env.OPENAI_PRECISE_MODEL || "").trim();
+    if (preciseModel && !/audio|transcribe|transcription|tts|whisper/i.test(preciseModel)) {
+      return preciseModel;
+    }
     return "gpt-5-mini";
   }
-  return model;
+  const fastModel = String(process.env.OPENAI_FAST_MODEL || process.env.OPENAI_TRANSLATION_MODEL || "").trim();
+  if (!fastModel || /audio|transcribe|transcription|tts|whisper/i.test(fastModel)) {
+    return "gpt-4.1-mini";
+  }
+  return fastModel;
 }
 
 function getClaudeTranslationModel() {

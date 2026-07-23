@@ -15,7 +15,17 @@
           <p class="eyebrow">AI Interpreter Chat</p>
           <h1>실시간 통역방</h1>
         </div>
-        <div class="status-pill" id="connectionStatus">대기</div>
+        <div class="topbar-actions">
+          <div class="mode-toggle-group" id="modeToggleGroup" role="radiogroup" aria-label="번역 모드 선택">
+            <button class="mode-toggle-btn active" id="modeFastBtn" type="button" role="radio" aria-checked="true" data-mode="fast" title="빠른 번역 (GPT-4.1 mini)">
+              <span>⚡ 빠른</span>
+            </button>
+            <button class="mode-toggle-btn" id="modePreciseBtn" type="button" role="radio" aria-checked="false" data-mode="precise" title="정밀 번역 (GPT-5 mini)">
+              <span>🎯 정밀</span>
+            </button>
+          </div>
+          <div class="status-pill" id="connectionStatus">대기</div>
+        </div>
       </header>
 
       <main class="layout">

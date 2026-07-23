@@ -803,6 +803,7 @@ const state = {
   sentenceTranslating: false,
   notificationSupported: false,
   notificationsEnabled: false,
+  translationMode: localStorage.getItem("trio_translation_mode") || "fast",
   sending: false,
   previewing: false,
   typing: false,
@@ -1823,6 +1824,7 @@ async function sendMessage(event) {
         language: state.language,
         roomAccessToken: state.roomAccessToken,
         translationGuide: state.translationGuide,
+        translationMode: state.translationMode || "fast",
         replyToId: state.replyTarget?.id || "",
         text
       })
@@ -1870,6 +1872,7 @@ async function previewMessage() {
         language: state.language,
         roomAccessToken: state.roomAccessToken,
         translationGuide: state.translationGuide,
+        translationMode: state.translationMode || "fast",
         text
       })
     });
@@ -2895,3 +2898,22 @@ function urlBase64ToUint8Array(value) {
   }
   return output;
 }
+
+
+function setTranslationMode(mode) {
+  state.translationMode = mode === "precise" ? "precise" : "fast";
+  localStorage.setItem("trio_translation_mode", state.translationMode);
+
+  const fastBtn = document.getElementById("modeFastBtn");
+  const preciseBtn = document.getElementById("modePreciseBtn");
+  if (fastBtn && preciseBtn) {
+    fastBtn.classList.toggle("active", state.translationMode === "fast");
+    fastBtn.setAttribute("aria-checked", String(state.translationMode === "fast"));
+    preciseBtn.classList.toggle("active", state.translationMode === "precise");
+    preciseBtn.setAttribute("aria-checked", String(state.translationMode === "precise"));
+  }
+}
+
+document.getElementById("modeFastBtn")?.addEventListener("click", () => setTranslationMode("fast"));
+document.getElementById("modePreciseBtn")?.addEventListener("click", () => setTranslationMode("precise"));
+setTranslationMode(state.translationMode || "fast");

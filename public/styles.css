@@ -63,6 +63,48 @@ button {
   z-index: 5;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-toggle-group {
+  display: inline-flex;
+  background: var(--line, #e2e8f0);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.mode-toggle-btn {
+  border: none;
+  background: transparent;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-muted, #64748b);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mode-toggle-btn:hover {
+  color: var(--ink, #0f172a);
+}
+
+.mode-toggle-btn.active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.mode-toggle-btn[data-mode="precise"].active {
+  color: #7c3aed;
+}
+
 .eyebrow {
   margin: 0 0 3px;
   color: var(--blue);
