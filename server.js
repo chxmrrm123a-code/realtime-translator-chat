@@ -1952,6 +1952,7 @@ const server = createServer(async (req, res) => {
       persistenceEnabled: true,
       roomCapacity,
       roomHistoryLimit,
+      trioTranslateApi: true,
       aiEnabled: isAiEnabled(),
       aiProvider: getAiProvider(),
       pushEnabled: Boolean(vapidKeys?.publicKey),

@@ -108,7 +108,18 @@ test("chat history returns after the server restarts", async () => {
 
   try {
     child = startServer({ databasePath, port });
-    await waitForHealth(baseUrl, child);
+    const initialHealth = await waitForHealth(baseUrl, child);
+    assert.equal(initialHealth.trioTranslateApi, true);
+
+    const compatibilityResponse = await fetch(`${baseUrl}/api/translate`);
+    assert.equal(compatibilityResponse.status, 200);
+    assert.deepEqual(await compatibilityResponse.json(), {
+      configured: false,
+      accessRequired: false,
+      provider: "",
+      model: ""
+    });
+
     await postJson(`${baseUrl}/api/room/join`, {
       room: "PILOT-ROOM",
       clientId: "korea-user"
