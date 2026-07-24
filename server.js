@@ -1813,11 +1813,11 @@ function getTranslationModel(mode = "fast") {
     if (preciseModel && !/audio|transcribe|transcription|tts|whisper/i.test(preciseModel)) {
       return preciseModel;
     }
-    return "gpt-5-mini";
+    return "gpt-4o";
   }
   const fastModel = String(process.env.OPENAI_FAST_MODEL || process.env.OPENAI_TRANSLATION_MODEL || "").trim();
   if (!fastModel || /audio|transcribe|transcription|tts|whisper/i.test(fastModel)) {
-    return "gpt-4.1-mini";
+    return "gpt-4o-mini";
   }
   return fastModel;
 }
