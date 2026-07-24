@@ -1919,6 +1919,28 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === "GET" && url.pathname === "/api/test-ai") {
+    try {
+      const result = await translateWithOpenAI({
+        text: "Hello",
+        sourceLanguage: "en",
+        targetLanguage: "ko",
+        context: [],
+        translationGuide: "",
+        translationMode: "fast"
+      });
+      sendJson(res, 200, { ok: true, result });
+    } catch (err) {
+      sendJson(res, 200, {
+        ok: false,
+        error: err instanceof Error ? err.message : String(err),
+        hasKey: Boolean(process.env.OPENAI_API_KEY),
+        keyPrefix: (process.env.OPENAI_API_KEY || "").slice(0, 7)
+      });
+    }
+    return;
+  }
+
   if (req.method === "GET" && url.pathname === "/healthz") {
     const storage = chatStore.stats();
     sendJson(res, 200, {
