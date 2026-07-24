@@ -1514,8 +1514,8 @@ async function rewriteMessage({ text, language, translationGuide }) {
 }
 
 function getAiProvider() {
-  if (String(process.env.ANTHROPIC_API_KEY || "").trim()) return "anthropic";
   if (String(process.env.OPENAI_API_KEY || "").trim()) return "openai";
+  if (String(process.env.ANTHROPIC_API_KEY || "").trim()) return "anthropic";
   return "";
 }
 
