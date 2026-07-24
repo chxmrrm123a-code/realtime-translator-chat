@@ -1490,7 +1490,7 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
     return {
       text: demoTranslate(text, targetLanguage),
       provider: "demo",
-      error: "AI translation failed; demo translation shown."
+      error: error instanceof Error ? error.message : String(error)
     };
   }
 }
