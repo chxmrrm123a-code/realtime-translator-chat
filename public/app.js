@@ -99,6 +99,10 @@ const uiText = {
     retranslateBusiness: "회사 말투",
     retranslateLoading: "다시 번역 중",
     retranslateFailed: "다시 번역 실패",
+    modeFast: "⚡ 빠른",
+    modePrecise: "🎯 정밀",
+    modeFastTitle: "빠른 번역 (가벼운 모델, 1~2초)",
+    modePreciseTitle: "정밀 번역 (고성능 모델, 더 정확하지만 느림)",
     tonePresets: [
       { id: "casual", label: "일상", rule: "일상 대화처럼 자연스럽고 짧게 번역" },
       { id: "business", label: "회사", rule: "회사 업무 대화처럼 명확하고 실무적인 말투로 번역" },
@@ -233,6 +237,10 @@ const uiText = {
     retranslateBusiness: "Business tone",
     retranslateLoading: "Retranslating",
     retranslateFailed: "Retranslation failed",
+    modeFast: "⚡ Fast",
+    modePrecise: "🎯 Precise",
+    modeFastTitle: "Fast translation (light model, 1-2s)",
+    modePreciseTitle: "Precise translation (stronger model, slower but more accurate)",
     tonePresets: [
       { id: "casual", label: "Casual", rule: "Translate in a natural everyday chat tone. Keep it clear and concise." },
       { id: "business", label: "Business", rule: "Translate in a clear, professional workplace tone." },
@@ -367,6 +375,10 @@ const uiText = {
     retranslateBusiness: "仕事口調",
     retranslateLoading: "再翻訳中",
     retranslateFailed: "再翻訳失敗",
+    modeFast: "⚡ 高速",
+    modePrecise: "🎯 精密",
+    modeFastTitle: "高速翻訳（軽量モデル、1〜2秒）",
+    modePreciseTitle: "精密翻訳（高性能モデル、正確だが遅い）",
     tonePresets: [
       { id: "casual", label: "日常", rule: "日常会話のように自然で短めに翻訳" },
       { id: "business", label: "仕事", rule: "職場の会話のように明確で実務的な口調で翻訳" },
@@ -501,6 +513,10 @@ const uiText = {
     retranslateBusiness: "商务语气",
     retranslateLoading: "正在重新翻译",
     retranslateFailed: "重新翻译失败",
+    modeFast: "⚡ 快速",
+    modePrecise: "🎯 精准",
+    modeFastTitle: "快速翻译（轻量模型，1~2秒）",
+    modePreciseTitle: "精准翻译（高性能模型，更准确但较慢）",
     tonePresets: [
       { id: "casual", label: "日常", rule: "像日常聊天一样自然、简洁地翻译" },
       { id: "business", label: "公司", rule: "用清晰、专业、适合职场的语气翻译" },
@@ -635,6 +651,10 @@ const uiText = {
     retranslateBusiness: "Giọng công việc",
     retranslateLoading: "Đang dịch lại",
     retranslateFailed: "Dịch lại thất bại",
+    modeFast: "⚡ Nhanh",
+    modePrecise: "🎯 Chính xác",
+    modeFastTitle: "Dịch nhanh (mô hình nhẹ, 1-2 giây)",
+    modePreciseTitle: "Dịch chính xác (mô hình mạnh, chậm hơn nhưng chuẩn hơn)",
     tonePresets: [
       { id: "casual", label: "Thường ngày", rule: "Dịch tự nhiên như trò chuyện hằng ngày, rõ và ngắn gọn." },
       { id: "business", label: "Công việc", rule: "Dịch bằng giọng điệu rõ ràng, chuyên nghiệp, phù hợp công việc." },
@@ -1080,7 +1100,8 @@ async function translateSentence(event) {
         text,
         sourceLanguage,
         targetLanguage,
-        translationGuide: els.sentenceGuideInput.value
+        translationGuide: els.sentenceGuideInput.value,
+        translationMode: state.translationMode || "fast"
       })
     }, 25_000);
     const payload = await response.json().catch(() => ({}));
@@ -2542,6 +2563,7 @@ function applyUiLanguage() {
   document.documentElement.lang = state.uiLanguage;
   document.title = t("pageTitle");
   document.querySelector(".topbar h1").textContent = t("headerTitle");
+  updateModeToggleLabels();
 
   setLabelText(els.roomInput, "roomCode");
   setLabelText(els.nameInput, "nickname");
@@ -2914,6 +2936,17 @@ function setTranslationMode(mode) {
   }
 }
 
+function updateModeToggleLabels() {
+  const fastBtn = document.getElementById("modeFastBtn");
+  const preciseBtn = document.getElementById("modePreciseBtn");
+  if (!fastBtn || !preciseBtn) return;
+  fastBtn.querySelector("span").textContent = t("modeFast");
+  fastBtn.title = t("modeFastTitle");
+  preciseBtn.querySelector("span").textContent = t("modePrecise");
+  preciseBtn.title = t("modePreciseTitle");
+}
+
 document.getElementById("modeFastBtn")?.addEventListener("click", () => setTranslationMode("fast"));
 document.getElementById("modePreciseBtn")?.addEventListener("click", () => setTranslationMode("precise"));
 setTranslationMode(state.translationMode || "fast");
+updateModeToggleLabels();

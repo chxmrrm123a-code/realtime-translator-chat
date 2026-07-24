@@ -117,7 +117,9 @@ test("chat history returns after the server restarts", async () => {
       configured: false,
       accessRequired: false,
       provider: "",
-      model: ""
+      model: "",
+      fastModel: "",
+      preciseModel: ""
     });
 
     await postJson(`${baseUrl}/api/room/join`, {

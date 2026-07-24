@@ -474,10 +474,10 @@ function trioRequestIsAuthorized(req) {
   return secureTextEqual(provided, trioAccessCode);
 }
 
-function activeTranslationModel() {
+function activeTranslationModel(mode = "fast") {
   const provider = getAiProvider();
-  if (provider === "anthropic") return getClaudeTranslationModel();
-  if (provider === "openai") return getTranslationModel();
+  if (provider === "anthropic") return getClaudeTranslationModel(mode);
+  if (provider === "openai") return getTranslationModel(mode);
   return "";
 }
 
@@ -511,6 +511,8 @@ async function handleTrioTranslate(req, res) {
   const style = String(payload.style || "natural");
   const text = String(payload.text || "").trim();
   const customRules = String(payload.customRules || "").trim();
+  const translationMode =
+    String(payload.translationMode || payload.quality || "") === "precise" ? "precise" : "fast";
 
   if (!Object.hasOwn(languages, sourceLanguage) || !Object.hasOwn(languages, targetLanguage)) {
     sendJson(res, 400, { error: "입력 언어와 출력 언어를 다시 선택해 주세요." });
@@ -534,13 +536,14 @@ async function handleTrioTranslate(req, res) {
 
   try {
     const result = sourceLanguage === targetLanguage
-      ? await rewriteMessage({ text, language: sourceLanguage, translationGuide })
+      ? await rewriteMessage({ text, language: sourceLanguage, translationGuide, translationMode })
       : await translateMessage({
           text,
           sourceLanguage,
           targetLanguage,
           context: [],
-          translationGuide
+          translationGuide,
+          translationMode
         });
 
     if (result.provider === "demo" || result.error || !String(result.text || "").trim()) {
@@ -551,14 +554,16 @@ async function handleTrioTranslate(req, res) {
     sendJson(res, 200, {
       translation: String(result.text).trim(),
       provider: result.provider,
-      model: activeTranslationModel(),
+      model: activeTranslationModel(translationMode),
+      translationMode,
       rulesApplied: Boolean(customRules),
       styleApplied: style
     });
     console.log("TRIO translation completed", {
       durationMs: Date.now() - startedAt,
       provider: result.provider,
-      model: activeTranslationModel(),
+      model: activeTranslationModel(translationMode),
+      translationMode,
       sourceLanguage,
       targetLanguage,
       hasCustomRules: Boolean(customRules)
@@ -856,7 +861,6 @@ async function handlePreview(req, res) {
   }
 
   const context = room.history.slice(-10);
-  const translationMode = payload.translationMode === "precise" ? "precise" : "fast";
   const previews = await Promise.all(
     targetLanguages.map(async (targetLanguage) => {
       const translation = await translateMessage({
@@ -898,12 +902,14 @@ async function handleSentenceTranslate(req, res) {
   const sourceLanguage = normalizeLanguage(payload.sourceLanguage);
   const targetLanguage = normalizeLanguage(payload.targetLanguage);
   const translationGuide = normalizeTranslationGuide(payload.translationGuide);
+  const translationMode = payload.translationMode === "precise" ? "precise" : "fast";
   const translation = await translateMessage({
     text,
     sourceLanguage,
     targetLanguage,
     context: [],
-    translationGuide
+    translationGuide,
+    translationMode
   });
 
   sendJson(res, 200, {
@@ -954,7 +960,10 @@ async function handleRetranslate(req, res) {
     sourceLanguage: message.sourceLanguage,
     targetLanguage,
     context,
-    translationGuide
+    translationGuide,
+    translationMode: payload.translationMode === "precise"
+      ? "precise"
+      : message.translationMode || "fast"
   });
   if (!translation.error && translation.provider !== "demo") {
     const cacheKey = getTranslationCacheKey(message, targetLanguage);
@@ -1463,6 +1472,7 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
         targetLanguage,
         context,
         translationGuide,
+        translationMode,
         forceDifferent: true,
         temperature: 0.3
       });
@@ -1478,6 +1488,7 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
           targetLanguage,
           context,
           translationGuide,
+          translationMode,
           forceDifferent: true,
           temperature: 0.6,
           extraPrompt: "CRITICAL: The previous translation attempts failed because they returned text identical to the source language or script. You MUST translate the message to the target language. Do not output the source language."
@@ -1495,7 +1506,7 @@ async function translateMessage({ text, sourceLanguage, targetLanguage, context,
   }
 }
 
-async function rewriteMessage({ text, language, translationGuide }) {
+async function rewriteMessage({ text, language, translationGuide, translationMode = "fast" }) {
   const provider = getAiProvider();
   if (!provider) throw new Error("AI provider is not configured.");
 
@@ -1505,7 +1516,8 @@ async function rewriteMessage({ text, language, translationGuide }) {
     sourceLanguage: language,
     targetLanguage: language,
     context: [],
-    translationGuide
+    translationGuide,
+    translationMode
   });
 
   const clean = String(rewritten || "").trim();
@@ -1555,26 +1567,33 @@ async function translateWithOpenAI({
         extraPrompt
       });
 
+  const requestBody = {
+    model,
+    messages: [
+      {
+        role: "system",
+        content: buildAiSystemPrompt({ rewriteMode, translationGuide })
+      },
+      {
+        role: "user",
+        content: prompt
+      }
+    ]
+  };
+  if (isOpenAiReasoningModel(model)) {
+    // gpt-5/o-series reject custom temperature; keep fast mode snappy with minimal reasoning.
+    if (translationMode === "fast") requestBody.reasoning_effort = "minimal";
+  } else {
+    requestBody.temperature = temperature;
+  }
+
   const response = await fetchAi("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       "content-type": "application/json"
     },
-    body: JSON.stringify({
-      model,
-      messages: [
-        {
-          role: "system",
-          content: buildAiSystemPrompt({ rewriteMode, translationGuide })
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature
-    })
+    body: JSON.stringify(requestBody)
   });
 
   if (!response.ok) {
@@ -1590,6 +1609,7 @@ async function translateWithOpenAI({
 
 async function translateWithClaude({
   mode = "translate",
+  translationMode = "fast",
   text,
   sourceLanguage,
   targetLanguage,
@@ -1599,7 +1619,7 @@ async function translateWithClaude({
   temperature = 0,
   extraPrompt = ""
 }) {
-  const model = getClaudeTranslationModel();
+  const model = getClaudeTranslationModel(translationMode);
   const rewriteMode = mode === "rewrite";
   const prompt = rewriteMode
     ? buildRewritePrompt({ text, language: sourceLanguage, translationGuide })
@@ -1807,24 +1827,36 @@ function sharesPrimaryScript(firstLanguage, secondLanguage) {
   return hanLanguages.has(firstLanguage) && hanLanguages.has(secondLanguage);
 }
 
-function getTranslationModel(mode = "fast") {
-  if (mode === "precise") {
-    const preciseModel = String(process.env.OPENAI_PRECISE_MODEL || "").trim();
-    if (preciseModel && !/audio|transcribe|transcription|tts|whisper/i.test(preciseModel)) {
-      return preciseModel;
-    }
-    return "gpt-4o";
-  }
-  const fastModel = String(process.env.OPENAI_FAST_MODEL || process.env.OPENAI_TRANSLATION_MODEL || "").trim();
-  if (!fastModel || /audio|transcribe|transcription|tts|whisper/i.test(fastModel)) {
-    return "gpt-4o-mini";
-  }
-  return fastModel;
+function isValidTranslationModel(model) {
+  return Boolean(model) && !/audio|transcribe|transcription|tts|whisper/i.test(model);
 }
 
-function getClaudeTranslationModel() {
-  const model = String(process.env.ANTHROPIC_TRANSLATION_MODEL || "").trim();
-  return model || "claude-haiku-4-5";
+function getTranslationModel(mode = "fast") {
+  if (mode === "precise") {
+    const preciseModel = String(
+      process.env.OPENAI_PRECISE_MODEL || process.env.OPENAI_TRANSLATION_MODEL || ""
+    ).trim();
+    return isValidTranslationModel(preciseModel) ? preciseModel : "gpt-5-mini";
+  }
+  const fastModel = String(process.env.OPENAI_FAST_MODEL || "").trim();
+  return isValidTranslationModel(fastModel) ? fastModel : "gpt-4.1-mini";
+}
+
+function isOpenAiReasoningModel(model) {
+  return /^(gpt-5|o\d)/i.test(String(model || ""));
+}
+
+function getClaudeTranslationModel(mode = "fast") {
+  if (mode === "precise") {
+    const preciseModel = String(
+      process.env.ANTHROPIC_PRECISE_MODEL || process.env.ANTHROPIC_TRANSLATION_MODEL || ""
+    ).trim();
+    return preciseModel || "claude-sonnet-5";
+  }
+  const fastModel = String(
+    process.env.ANTHROPIC_FAST_MODEL || process.env.ANTHROPIC_TRANSLATION_MODEL || ""
+  ).trim();
+  return fastModel || "claude-haiku-4-5";
 }
 
 function extractResponseText(data) {
@@ -1971,7 +2003,9 @@ const server = createServer(async (req, res) => {
       configured: isAiEnabled(),
       accessRequired: Boolean(trioAccessCode),
       provider: getAiProvider(),
-      model: activeTranslationModel()
+      model: activeTranslationModel(),
+      fastModel: activeTranslationModel("fast"),
+      preciseModel: activeTranslationModel("precise")
     });
     return;
   }
