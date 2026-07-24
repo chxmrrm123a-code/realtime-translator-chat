@@ -1861,6 +1861,7 @@ function demoTranslate(text, targetLanguage) {
 }
 
 async function serveStatic(req, res, url) {
+  if (url.pathname.startsWith("/api/")) return;
   let pathname = decodeURIComponent(url.pathname);
   if (pathname === "/" || pathname.startsWith("/room/")) pathname = "/index.html";
 
